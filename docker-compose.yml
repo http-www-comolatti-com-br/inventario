@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  inventario-postgres:
+    image: postgres:16-alpine
+    container_name: inventario-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: inventario
+      POSTGRES_PASSWORD: inventario123
+      POSTGRES_DB: inventario
+    volumes:
+      - inventario-pgdata:/var/lib/postgresql/data
+    networks:
+      - inventario-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inventario"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  inventario-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: inventario-backend
+    restart: unless-stopped
+    ports:
+      - "8201:8201"
+    environment:
+      PORT: 8201
+      DB_HOST: inventario-postgres
+      DB_PORT: 5432
+      DB_USER: inventario
+      DB_PASSWORD: inventario123
+      DB_NAME: inventario
+      JWT_SECRET: inventario_jwt_secret_2024
+    depends_on:
+      inventario-postgres:
+        condition: service_healthy
+    networks:
+      - inventario-network
+
+  inventario-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: inventario-frontend
+    restart: unless-stopped
+    ports:
+      - "8200:8200"
+    depends_on:
+      - inventario-backend
+    networks:
+      - inventario-network
+
+volumes:
+  inventario-pgdata:
+    name: inventario-pgdata
+
+networks:
+  inventario-network:
+    name: inventario-network
+    driver: bridge
