@@ -108,3 +108,189 @@ VALUES (
   'admin',
   TRUE
 ) ON CONFLICT (login) DO NOTHING;
+
+-- ═══════════════════════════════════════════════════════════════
+-- Categorias de TI pré-cadastradas
+-- ═══════════════════════════════════════════════════════════════
+
+-- Computadores
+INSERT INTO categorias (nome, subcategoria) VALUES ('Computadores', 'Notebook') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Computadores', 'Desktop') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Computadores', 'Workstation') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Computadores', 'All-In-One') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Computadores', 'Mini PC') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Computadores', 'Thin Client') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Computadores', 'Chromebook') ON CONFLICT DO NOTHING;
+
+-- Monitores e Displays
+INSERT INTO categorias (nome, subcategoria) VALUES ('Monitores', 'Monitor LED/LCD') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Monitores', 'Monitor Ultrawide') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Monitores', 'Monitor Curvo') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Monitores', 'TV/Display') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Monitores', 'Projetor') ON CONFLICT DO NOTHING;
+
+-- Periféricos - Entrada
+INSERT INTO categorias (nome, subcategoria) VALUES ('Periféricos', 'Mouse') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Periféricos', 'Teclado') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Periféricos', 'Kit Mouse e Teclado') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Periféricos', 'Mousepad') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Periféricos', 'Webcam') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Periféricos', 'Scanner') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Periféricos', 'Leitor de Código de Barras') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Periféricos', 'Mesa Digitalizadora') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Periféricos', 'Controle/Joystick') ON CONFLICT DO NOTHING;
+
+-- Periféricos - Saída/Áudio
+INSERT INTO categorias (nome, subcategoria) VALUES ('Áudio', 'Headset') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Áudio', 'Fone de Ouvido') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Áudio', 'Caixa de Som') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Áudio', 'Microfone') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Áudio', 'Soundbar') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Áudio', 'Speakerphone') ON CONFLICT DO NOTHING;
+
+-- Impressão
+INSERT INTO categorias (nome, subcategoria) VALUES ('Impressão', 'Impressora Laser') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Impressão', 'Impressora Jato de Tinta') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Impressão', 'Impressora Multifuncional') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Impressão', 'Impressora Térmica') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Impressão', 'Impressora de Etiquetas') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Impressão', 'Plotter') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Impressão', 'Toner') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Impressão', 'Cartucho de Tinta') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Impressão', 'Ribbon') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Impressão', 'Rolo de Etiquetas') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Impressão', 'Papel A4') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Impressão', 'Papel Fotográfico') ON CONFLICT DO NOTHING;
+
+-- Rede e Conectividade
+INSERT INTO categorias (nome, subcategoria) VALUES ('Rede', 'Switch') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Rede', 'Roteador') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Rede', 'Access Point') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Rede', 'Firewall') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Rede', 'Modem') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Rede', 'Patch Panel') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Rede', 'Rack') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Rede', 'Organizador de Cabos') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Rede', 'Bandeja para Rack') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Rede', 'Placa de Rede') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Rede', 'Repetidor Wi-Fi') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Rede', 'Antena') ON CONFLICT DO NOTHING;
+
+-- Cabos e Conectores
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Cabo HDMI') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Cabo DisplayPort') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Cabo VGA') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Cabo DVI') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Cabo USB-A') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Cabo USB-C') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Cabo Micro USB') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Cabo Lightning') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Cabo de Rede (Patch Cord)') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Cabo de Rede (Rolo)') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Cabo de Fibra Óptica') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Cabo de Força') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Cabo P2 (Áudio)') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Cabo Serial/RS232') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Adaptador/Conversor') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Hub USB') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Dock Station') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Conector RJ45') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Cabos', 'Conector RJ11') ON CONFLICT DO NOTHING;
+
+-- Armazenamento
+INSERT INTO categorias (nome, subcategoria) VALUES ('Armazenamento', 'HD Interno') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Armazenamento', 'HD Externo') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Armazenamento', 'SSD Interno') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Armazenamento', 'SSD Externo') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Armazenamento', 'SSD NVMe/M.2') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Armazenamento', 'Pendrive') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Armazenamento', 'Cartão de Memória') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Armazenamento', 'NAS') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Armazenamento', 'Fita LTO/Backup') ON CONFLICT DO NOTHING;
+
+-- Servidores e Infraestrutura
+INSERT INTO categorias (nome, subcategoria) VALUES ('Servidores', 'Servidor Rack') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Servidores', 'Servidor Torre') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Servidores', 'Servidor Blade') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Servidores', 'Storage') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Servidores', 'UPS/Nobreak') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Servidores', 'Estabilizador') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Servidores', 'PDU') ON CONFLICT DO NOTHING;
+
+-- Componentes Internos
+INSERT INTO categorias (nome, subcategoria) VALUES ('Componentes', 'Memória RAM') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Componentes', 'Processador') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Componentes', 'Placa-Mãe') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Componentes', 'Placa de Vídeo') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Componentes', 'Fonte de Alimentação') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Componentes', 'Cooler/Ventilador') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Componentes', 'Gabinete') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Componentes', 'Bateria de Notebook') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Componentes', 'Carregador/Fonte de Notebook') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Componentes', 'Unidade Óptica (DVD/Blu-ray)') ON CONFLICT DO NOTHING;
+
+-- Telefonia
+INSERT INTO categorias (nome, subcategoria) VALUES ('Telefonia', 'Telefone IP') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Telefonia', 'Telefone Analógico') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Telefonia', 'Telefone Sem Fio') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Telefonia', 'Central Telefônica/PABX') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Telefonia', 'Gateway VoIP') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Telefonia', 'Celular Corporativo') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Telefonia', 'Tablet') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Telefonia', 'Carregador de Celular') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Telefonia', 'Capa/Película') ON CONFLICT DO NOTHING;
+
+-- Segurança
+INSERT INTO categorias (nome, subcategoria) VALUES ('Segurança', 'Câmera IP') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Segurança', 'DVR/NVR') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Segurança', 'Controle de Acesso') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Segurança', 'Leitor Biométrico') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Segurança', 'Cadeado/Trava de Segurança') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Segurança', 'Token de Autenticação') ON CONFLICT DO NOTHING;
+
+-- Energia
+INSERT INTO categorias (nome, subcategoria) VALUES ('Energia', 'Filtro de Linha') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Energia', 'Extensão Elétrica') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Energia', 'Régua de Tomadas') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Energia', 'Pilha/Bateria') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Energia', 'Carregador Universal') ON CONFLICT DO NOTHING;
+
+-- Videoconferência
+INSERT INTO categorias (nome, subcategoria) VALUES ('Videoconferência', 'Câmera de Videoconferência') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Videoconferência', 'Sistema de Videoconferência') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Videoconferência', 'Barra de Vídeo') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Videoconferência', 'Controle Remoto') ON CONFLICT DO NOTHING;
+
+-- Suportes e Ergonomia
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ergonomia', 'Suporte para Monitor') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ergonomia', 'Suporte para Notebook') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ergonomia', 'Apoio de Pulso') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ergonomia', 'Apoio para Pés') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ergonomia', 'Cadeira Gamer/Ergonômica') ON CONFLICT DO NOTHING;
+
+-- Ferramentas e Acessórios de TI
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ferramentas', 'Kit de Ferramentas') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ferramentas', 'Testador de Cabos') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ferramentas', 'Alicate de Crimpagem') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ferramentas', 'Chave de Fenda/Phillips') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ferramentas', 'Pulseira Antiestática') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ferramentas', 'Soprador/Aspirador') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ferramentas', 'Pasta Térmica') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ferramentas', 'Álcool Isopropílico') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ferramentas', 'Abraçadeira/Velcro') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Ferramentas', 'Etiquetadora') ON CONFLICT DO NOTHING;
+
+-- Software e Licenças
+INSERT INTO categorias (nome, subcategoria) VALUES ('Software', 'Licença Windows') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Software', 'Licença Office/Microsoft 365') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Software', 'Licença Antivírus') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Software', 'Licença Adobe') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Software', 'Licença AutoCAD') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Software', 'Licença Diversa') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Software', 'Certificado Digital') ON CONFLICT DO NOTHING;
+
+-- Outros
+INSERT INTO categorias (nome, subcategoria) VALUES ('Outros', 'Mochila/Case para Notebook') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Outros', 'Crachá/Cordão') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Outros', 'Material de Limpeza de TI') ON CONFLICT DO NOTHING;
+INSERT INTO categorias (nome, subcategoria) VALUES ('Outros', 'Diversos') ON CONFLICT DO NOTHING;
