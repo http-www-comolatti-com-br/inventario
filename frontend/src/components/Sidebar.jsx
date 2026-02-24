@@ -3,7 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   HiOutlineViewGrid, HiOutlineCube, HiOutlineTag, HiOutlineClipboardList,
   HiOutlineUsers, HiOutlineUserGroup, HiOutlineSwitchHorizontal,
-  HiOutlineSearch, HiOutlineLogout, HiOutlineServer, HiOutlineChip
+  HiOutlineSearch, HiOutlineLogout, HiOutlineServer, HiOutlineChip,
+  HiOutlineQuestionMarkCircle
 } from 'react-icons/hi';
 
 export default function Sidebar({ collapsed, onToggle }) {
@@ -24,6 +25,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     { to: '/destinatarios', icon: HiOutlineUserGroup, label: 'Destinatários' },
     { to: '/movimentacoes', icon: HiOutlineSwitchHorizontal, label: 'Movimentações' },
     { to: '/consultas', icon: HiOutlineSearch, label: 'Consultas' },
+    { to: '/ajuda', icon: HiOutlineQuestionMarkCircle, label: 'Ajuda' },
   ];
 
   if (usuario?.perfil === 'admin') {

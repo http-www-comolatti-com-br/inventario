@@ -12,6 +12,7 @@ import Destinatarios from './pages/Destinatarios';
 import Movimentacoes from './pages/Movimentacoes';
 import Consultas from './pages/Consultas';
 import Usuarios from './pages/Usuarios';
+import Ajuda from './pages/Ajuda';
 
 function PrivateRoute({ children }) {
   const { usuario, loading } = useAuth();
@@ -52,6 +53,7 @@ function App() {
             <Route path="destinatarios" element={<Destinatarios />} />
             <Route path="movimentacoes" element={<Movimentacoes />} />
             <Route path="consultas" element={<Consultas />} />
+            <Route path="ajuda" element={<Ajuda />} />
             <Route path="usuarios" element={<AdminRoute><Usuarios /></AdminRoute>} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />

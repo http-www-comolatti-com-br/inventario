@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const initDatabase = require('./db/init');
+const { capitalizeBody } = require('./middleware/capitalize');
 
 const app = express();
 const PORT = process.env.PORT || 8201;
@@ -9,6 +10,7 @@ const PORT = process.env.PORT || 8201;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(capitalizeBody); // Capitaliza automaticamente campos de texto no body
 
 // Rotas
 app.use('/api/auth', require('./routes/auth'));
