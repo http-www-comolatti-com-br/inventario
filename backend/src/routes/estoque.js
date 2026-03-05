@@ -1,6 +1,6 @@
 const express = require('express');
 const pool = require('../db');
-const { auth } = require('../middleware/auth');
+const { auth, adminOnly } = require('../middleware/auth');
 const router = express.Router();
 
 // GET /api/estoque
@@ -70,6 +70,66 @@ router.put('/:id', auth, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Erro ao atualizar estoque.' });
+  }
+});
+
+// DELETE /api/estoque/:id
+router.delete('/:id', auth, adminOnly, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Verificar se o item existe
+    const item = await client.query(
+      'SELECT e.*, m.nome as modelo_nome FROM estoque e JOIN modelos m ON e.modelo_id = m.id WHERE e.id = $1',
+      [req.params.id]
+    );
+    if (item.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Item de estoque não encontrado.' });
+    }
+
+    const { modelo_id, quantidade_disponivel, modelo_nome } = item.rows[0];
+
+    // Bloquear se ainda há saldo em estoque
+    if (quantidade_disponivel > 0) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({
+        error: `Não é possível excluir "${modelo_nome}" pois ainda há ${quantidade_disponivel} unidade(s) em estoque. Zere o saldo antes de excluir.`
+      });
+    }
+
+    // Verificar se há movimentações vinculadas ao modelo
+    const movs = await client.query(
+      'SELECT COUNT(*) FROM movimentacoes WHERE modelo_id = $1',
+      [modelo_id]
+    );
+    const temHistorico = parseInt(movs.rows[0].count) > 0;
+
+    // Excluir o registro de estoque
+    await client.query('DELETE FROM estoque WHERE id = $1', [req.params.id]);
+
+    // Se não tem histórico, excluir também o modelo
+    if (!temHistorico) {
+      await client.query('DELETE FROM modelos WHERE id = $1', [modelo_id]);
+    }
+
+    await client.query('COMMIT');
+    res.json({
+      message: temHistorico
+        ? `Item "${modelo_nome}" removido do estoque. O modelo foi mantido por possuir histórico de movimentações.`
+        : `Item "${modelo_nome}" excluído com sucesso.`,
+      modelo_excluido: !temHistorico
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Erro ao excluir item de estoque:', err);
+    if (err.code === '23503') {
+      return res.status(409).json({ error: 'Item possui registros vinculados e não pode ser excluído.' });
+    }
+    res.status(500).json({ error: 'Erro ao excluir item de estoque.' });
+  } finally {
+    client.release();
   }
 });
 

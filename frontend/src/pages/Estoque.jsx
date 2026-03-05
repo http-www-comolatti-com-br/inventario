@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import Modal from '../components/Modal';
 import toast from 'react-hot-toast';
-import { HiOutlinePencil, HiOutlineExclamationCircle } from 'react-icons/hi';
+import { HiOutlinePencil, HiOutlineExclamationCircle, HiOutlineTrash } from 'react-icons/hi';
 
 export default function Estoque() {
   const [estoque, setEstoque] = useState([]);
@@ -33,6 +33,24 @@ export default function Estoque() {
       setModal(false);
       load();
     } catch (err) { toast.error(err.response?.data?.error || 'Erro ao salvar.'); }
+  };
+
+  const excluir = async (e) => {
+    const temSaldo = e.quantidade_disponivel > 0;
+    const msg = temSaldo
+      ? `"${e.modelo_nome}" ainda tem ${e.quantidade_disponivel} unidade(s) em estoque.\nZere o saldo via movimentação antes de excluir.`
+      : `Excluir o consumível "${e.modelo_nome}"? Esta ação não pode ser desfeita.`;
+
+    if (temSaldo) { toast.error(`Saldo ${e.quantidade_disponivel} — zere o estoque antes de excluir.`); return; }
+    if (!window.confirm(msg)) return;
+
+    try {
+      const res = await api.delete(`/estoque/${e.id}`);
+      toast.success(res.data.message);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erro ao excluir item.');
+    }
   };
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-12 h-12 border-4 border-cyber-cyan/30 border-t-cyber-cyan rounded-full animate-spin" /></div>;
@@ -85,9 +103,21 @@ export default function Estoque() {
                       <span className="text-cyber-green text-xs font-semibold">OK</span>
                     )}
                   </td>
-                  <td className="p-4 text-right">
-                    <button onClick={() => openEdit(e)} className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-cyan transition-colors">
+                  <td className="p-4 text-right whitespace-nowrap">
+                    <button
+                      onClick={() => openEdit(e)}
+                      className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-cyan transition-colors"
+                      title="Editar"
+                    >
                       <HiOutlinePencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => excluir(e)}
+                      className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-red transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      title={e.quantidade_disponivel > 0 ? `Saldo ${e.quantidade_disponivel} — zere o estoque antes de excluir` : 'Excluir consumível'}
+                      disabled={e.quantidade_disponivel > 0}
+                    >
+                      <HiOutlineTrash className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
