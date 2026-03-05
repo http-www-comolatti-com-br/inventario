@@ -4,12 +4,9 @@ import api from '../services/api';
 import Modal from '../components/Modal';
 import QRCodeModal from '../components/QRCodeModal';
 import toast from 'react-hot-toast';
-import { useAuth } from '../contexts/AuthContext';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineQrcode, HiOutlineClipboardList, HiOutlineServer, HiOutlineTrash } from 'react-icons/hi';
 
 export default function Unidades() {
-  const { usuario } = useAuth();
-  const isAdmin = usuario?.perfil === 'admin';
 
   const [searchParams] = useSearchParams();
   const [unidades, setUnidades] = useState([]);
@@ -175,16 +172,14 @@ export default function Unidades() {
                   <button onClick={() => openEdit(u)} className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-cyan transition-colors" title="Editar">
                     <HiOutlinePencil className="w-4 h-4" />
                   </button>
-                  {isAdmin && (
-                    <button
-                      onClick={() => excluir(u)}
-                      className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-red transition-colors"
-                      title={u.status === 'em_uso' || u.status === 'manutencao' ? 'Não é possível excluir (em uso/manutenção)' : 'Excluir unidade'}
-                      disabled={u.status === 'em_uso' || u.status === 'manutencao'}
-                    >
-                      <HiOutlineTrash className="w-4 h-4" />
-                    </button>
-                  )}
+                  <button
+                    onClick={() => excluir(u)}
+                    className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-red transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title={u.status === 'em_uso' ? 'Em uso — faça a devolução primeiro' : u.status === 'manutencao' ? 'Em manutenção — encerre antes de excluir' : 'Excluir unidade'}
+                    disabled={u.status === 'em_uso' || u.status === 'manutencao'}
+                  >
+                    <HiOutlineTrash className="w-4 h-4" />
+                  </button>
                 </td>
               </tr>
             ))}
