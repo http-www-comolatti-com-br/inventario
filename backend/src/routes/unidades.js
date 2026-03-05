@@ -1,7 +1,7 @@
 const express = require('express');
 const QRCode = require('qrcode');
 const pool = require('../db');
-const { auth } = require('../middleware/auth');
+const { auth, adminOnly } = require('../middleware/auth');
 const router = express.Router();
 
 // GET /api/unidades
@@ -195,6 +195,46 @@ router.put('/:id', auth, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Erro ao atualizar unidade.' });
+  }
+});
+
+// DELETE /api/unidades/:id
+router.delete('/:id', auth, adminOnly, async (req, res) => {
+  try {
+    // Verificar se a unidade existe
+    const unidade = await pool.query('SELECT * FROM unidades WHERE id = $1', [req.params.id]);
+    if (unidade.rows.length === 0) return res.status(404).json({ error: 'Unidade não encontrada.' });
+
+    const u = unidade.rows[0];
+
+    // Bloquear exclusão se estiver em uso ou em manutenção
+    if (u.status === 'em_uso') {
+      return res.status(409).json({ error: 'Não é possível excluir uma unidade que está em uso. Registre uma devolução primeiro.' });
+    }
+    if (u.status === 'manutencao') {
+      return res.status(409).json({ error: 'Não é possível excluir uma unidade que está em manutenção.' });
+    }
+
+    // Verificar se possui movimentações vinculadas
+    const movs = await pool.query('SELECT COUNT(*) FROM movimentacoes WHERE unidade_id = $1', [req.params.id]);
+    if (parseInt(movs.rows[0].count) > 0) {
+      // Tem histórico: apenas marcar como baixado em vez de deletar fisicamente
+      await pool.query(
+        "UPDATE unidades SET status = 'baixado', destinatario_id = NULL, atualizado_em = NOW() WHERE id = $1",
+        [req.params.id]
+      );
+      return res.json({ message: 'Unidade possui histórico de movimentações e foi marcada como Baixada para preservar o registro de auditoria.', baixado: true });
+    }
+
+    // Sem histórico: exclusão física
+    await pool.query('DELETE FROM unidades WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Unidade excluída com sucesso.', excluido: true });
+  } catch (err) {
+    console.error('Erro ao excluir unidade:', err);
+    if (err.code === '23503') {
+      return res.status(409).json({ error: 'Unidade possui registros vinculados e não pode ser excluída.' });
+    }
+    res.status(500).json({ error: 'Erro ao excluir unidade.' });
   }
 });
 
