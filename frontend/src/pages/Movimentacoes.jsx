@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import Modal from '../components/Modal';
 import toast from 'react-hot-toast';
-import { HiOutlinePlus, HiOutlineXCircle, HiOutlineSwitchHorizontal } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineXCircle } from 'react-icons/hi';
 
 const TIPOS = [
   { value: 'entrada', label: 'Entrada', color: 'bg-cyber-green/20 text-cyber-green' },
@@ -12,6 +12,15 @@ const TIPOS = [
   { value: 'manutencao', label: 'Manutenção', color: 'bg-orange-500/20 text-orange-400' },
   { value: 'baixa', label: 'Baixa', color: 'bg-cyber-red/20 text-cyber-red' },
 ];
+
+// Retorna o filtro de status correto para cada tipo de movimentação
+function getStatusFilter(tipoMov) {
+  if (tipoMov === 'entrega') return 'disponivel';
+  if (tipoMov === 'devolucao') return 'em_uso';
+  if (tipoMov === 'transferencia') return 'em_uso';
+  // manutencao, baixa e entrada: sem filtro de status (mostra todas)
+  return '';
+}
 
 export default function Movimentacoes() {
   const [movimentacoes, setMovimentacoes] = useState([]);
@@ -45,15 +54,16 @@ export default function Movimentacoes() {
     } catch {}
   };
 
-  const loadUnidades = async (modelo_id, status) => {
+  const loadUnidades = async (modelo_id, statusFilter) => {
     try {
       const params = { modelo_id };
-      if (status) params.status = status;
+      if (statusFilter) params.status = statusFilter;
       const res = await api.get('/unidades', { params });
       setUnidades(res.data);
     } catch {}
   };
 
+  // Abre o modal já sabendo o tipo — passa o tipo explicitamente para evitar stale closure
   const openNew = (tipo) => {
     setTipoMov(tipo);
     setForm({ modelo_id: '', unidade_id: '', quantidade: '', destinatario_id: '', observacao: '' });
@@ -61,15 +71,16 @@ export default function Movimentacoes() {
     setModal(true);
   };
 
-  const onModeloChange = (modelo_id) => {
-    setForm({ ...form, modelo_id, unidade_id: '' });
+  // Recebe tipoAtual como parâmetro para garantir o valor correto (evita stale closure)
+  const onModeloChange = (modelo_id, tipoAtual) => {
+    const tipo = tipoAtual || tipoMov;
+    setForm(prev => ({ ...prev, modelo_id, unidade_id: '' }));
     const modelo = modelos.find(m => m.id == modelo_id);
     if (modelo && modelo.tipo === 'patrimonio') {
-      let statusFilter = '';
-      if (tipoMov === 'entrega') statusFilter = 'disponivel';
-      else if (tipoMov === 'devolucao' || tipoMov === 'transferencia') statusFilter = 'em_uso';
-      else if (tipoMov === 'manutencao') statusFilter = '';
+      const statusFilter = getStatusFilter(tipo);
       loadUnidades(modelo_id, statusFilter);
+    } else {
+      setUnidades([]);
     }
   };
 
@@ -80,6 +91,9 @@ export default function Movimentacoes() {
   const save = async (e) => {
     e.preventDefault();
     if (!form.modelo_id) return toast.error('Selecione um modelo.');
+    if (isPatrimonio && !form.unidade_id) return toast.error('Selecione a unidade.');
+    if (!isPatrimonio && (!form.quantidade || form.quantidade <= 0)) return toast.error('Informe a quantidade.');
+    if (needDestinatario && !form.destinatario_id) return toast.error('Selecione o destinatário.');
     try {
       const data = { ...form };
       if (!isPatrimonio) { data.quantidade = parseInt(data.quantidade); delete data.unidade_id; }
@@ -175,46 +189,94 @@ export default function Movimentacoes() {
         <form onSubmit={save} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">Modelo/Item *</label>
-            <select value={form.modelo_id} onChange={e => onModeloChange(e.target.value)} className="select-field">
+            <select
+              value={form.modelo_id}
+              onChange={e => onModeloChange(e.target.value, tipoMov)}
+              className="select-field"
+            >
               <option value="">Selecione...</option>
-              {modelos.map(m => <option key={m.id} value={m.id}>{m.nome} ({m.tipo === 'patrimonio' ? 'Patrimônio' : 'Consumível'}) - {m.marca}</option>)}
+              {modelos.map(m => (
+                <option key={m.id} value={m.id}>
+                  {m.nome} ({m.tipo === 'patrimonio' ? 'Patrimônio' : 'Consumível'}) - {m.marca}
+                </option>
+              ))}
             </select>
           </div>
 
           {isPatrimonio && (
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Unidade *</label>
-              <select value={form.unidade_id} onChange={e => setForm({...form, unidade_id: e.target.value})} className="select-field">
+              <select
+                value={form.unidade_id}
+                onChange={e => setForm({ ...form, unidade_id: e.target.value })}
+                className="select-field"
+              >
                 <option value="">Selecione a unidade...</option>
+                {unidades.length === 0 && form.modelo_id ? (
+                  <option disabled value="">
+                    {tipoMov === 'entrega' ? 'Nenhuma unidade disponível para entrega' :
+                     tipoMov === 'devolucao' ? 'Nenhuma unidade em uso para devolução' :
+                     tipoMov === 'transferencia' ? 'Nenhuma unidade em uso para transferência' :
+                     'Nenhuma unidade cadastrada'}
+                  </option>
+                ) : null}
                 {unidades.map(u => (
                   <option key={u.id} value={u.id}>
-                    {u.numero_serie || u.etiqueta_patrimonial || `ID ${u.id}`} - {u.status}{u.destinatario_nome ? ` (${u.destinatario_nome})` : ''}
+                    {u.numero_serie || u.etiqueta_patrimonial || `ID ${u.id}`} — {u.status}{u.destinatario_nome ? ` (${u.destinatario_nome})` : ''}
                   </option>
                 ))}
               </select>
+              {isPatrimonio && form.modelo_id && unidades.length === 0 && (
+                <p className="text-xs text-cyber-yellow mt-1">
+                  {tipoMov === 'entrega' && '⚠ Não há unidades com status "Disponível" para este modelo. Cadastre uma unidade primeiro em Patrimônio.'}
+                  {tipoMov === 'devolucao' && '⚠ Não há unidades com status "Em Uso" para este modelo.'}
+                  {tipoMov === 'transferencia' && '⚠ Não há unidades com status "Em Uso" para este modelo.'}
+                  {(tipoMov === 'manutencao' || tipoMov === 'baixa') && '⚠ Nenhuma unidade cadastrada para este modelo.'}
+                </p>
+              )}
             </div>
           )}
 
           {!isPatrimonio && (
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Quantidade *</label>
-              <input type="number" min="1" value={form.quantidade} onChange={e => setForm({...form, quantidade: e.target.value})} className="input-field" placeholder="Quantidade" />
+              <input
+                type="number"
+                min="1"
+                value={form.quantidade}
+                onChange={e => setForm({ ...form, quantidade: e.target.value })}
+                className="input-field"
+                placeholder="Quantidade"
+              />
             </div>
           )}
 
           {needDestinatario && (
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Destinatário *</label>
-              <select value={form.destinatario_id} onChange={e => setForm({...form, destinatario_id: e.target.value})} className="select-field">
+              <select
+                value={form.destinatario_id}
+                onChange={e => setForm({ ...form, destinatario_id: e.target.value })}
+                className="select-field"
+              >
                 <option value="">Selecione...</option>
-                {destinatarios.map(d => <option key={d.id} value={d.id}>{d.nome_completo}{d.setor ? ` - ${d.setor}` : ''}</option>)}
+                {destinatarios.map(d => (
+                  <option key={d.id} value={d.id}>
+                    {d.nome_completo}{d.setor ? ` - ${d.setor}` : ''}
+                  </option>
+                ))}
               </select>
             </div>
           )}
 
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">Observação</label>
-            <textarea value={form.observacao} onChange={e => setForm({...form, observacao: e.target.value})} className="input-field h-20" placeholder="Motivo ou observação da movimentação" />
+            <textarea
+              value={form.observacao}
+              onChange={e => setForm({ ...form, observacao: e.target.value })}
+              className="input-field h-20"
+              placeholder="Motivo ou observação da movimentação"
+            />
           </div>
 
           <div className="flex gap-3 pt-4">
