@@ -106,6 +106,9 @@ router.delete('/:id', auth, adminOnly, async (req, res) => {
     );
     const temHistorico = parseInt(movs.rows[0].count) > 0;
 
+    // Desvincular movimentações que referenciam este estoque (preserva o histórico, apenas remove a FK)
+    await client.query('UPDATE movimentacoes SET estoque_id = NULL WHERE estoque_id = $1', [req.params.id]);
+
     // Excluir o registro de estoque
     await client.query('DELETE FROM estoque WHERE id = $1', [req.params.id]);
 
