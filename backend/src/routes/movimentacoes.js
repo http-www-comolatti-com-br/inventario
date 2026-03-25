@@ -84,6 +84,87 @@ router.post('/entrada', auth, async (req, res) => {
   }
 });
 
+// POST /api/movimentacoes/entrada-massa
+router.post('/entrada-massa', auth, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { modelo_id, tipo, seriais, quantidade, observacao } = req.body;
+
+    if (!modelo_id) return res.status(400).json({ error: 'Modelo é obrigatório.' });
+
+    await client.query('BEGIN');
+
+    // Verificar modelo
+    const modeloRes = await client.query('SELECT * FROM modelos WHERE id = $1', [modelo_id]);
+    if (modeloRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Modelo não encontrado.' });
+    }
+    const modelo = modeloRes.rows[0];
+
+    const movimentacoesCriadas = [];
+
+    if (modelo.tipo === 'consumivel') {
+      if (!quantidade || quantidade <= 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Quantidade é obrigatória para consumíveis.' });
+      }
+
+      // Atualizar estoque
+      await client.query(
+        'UPDATE estoque SET quantidade_disponivel = quantidade_disponivel + $1, atualizado_em = NOW() WHERE modelo_id = $2',
+        [quantidade, modelo_id]
+      );
+
+      const estoqueRes = await client.query('SELECT id FROM estoque WHERE modelo_id = $1', [modelo_id]);
+      
+      const mov = await client.query(
+        `INSERT INTO movimentacoes (tipo, modelo_id, estoque_id, quantidade, usuario_id, observacao)
+         VALUES ('entrada', $1, $2, $3, $4, $5) RETURNING *`,
+        [modelo_id, estoqueRes.rows[0]?.id || null, quantidade, req.user.id, observacao || 'Entrada em massa']
+      );
+      movimentacoesCriadas.push(mov.rows[0]);
+
+    } else {
+      // Patrimônio
+      if (!seriais || !Array.isArray(seriais) || seriais.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Lista de seriais é obrigatória para patrimônio.' });
+      }
+
+      for (const serial of seriais) {
+        const serialTrim = serial.trim();
+        if (!serialTrim) continue;
+
+        // Criar unidade
+        const unidadeRes = await client.query(
+          `INSERT INTO unidades (modelo_id, numero_serie, status, criado_em, atualizado_em)
+           VALUES ($1, $2, 'disponivel', NOW(), NOW()) RETURNING id`,
+          [modelo_id, serialTrim]
+        );
+        const unidadeId = unidadeRes.rows[0].id;
+
+        // Registrar movimentação
+        const mov = await client.query(
+          `INSERT INTO movimentacoes (tipo, modelo_id, unidade_id, usuario_id, observacao, criado_em)
+           VALUES ('entrada', $1, $2, $3, $4, NOW()) RETURNING *`,
+          [modelo_id, unidadeId, req.user.id, observacao || 'Entrada em massa (Patrimônio)']
+        );
+        movimentacoesCriadas.push(mov.rows[0]);
+      }
+    }
+
+    await client.query('COMMIT');
+    res.status(201).json({ message: 'Entrada em massa realizada com sucesso', itens: movimentacoesCriadas });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Erro na entrada em massa:', err);
+    res.status(500).json({ error: 'Erro ao processar entrada em massa.' });
+  } finally {
+    client.release();
+  }
+});
+
 // POST /api/movimentacoes/entrega
 router.post('/entrega', auth, async (req, res) => {
   const client = await pool.connect();

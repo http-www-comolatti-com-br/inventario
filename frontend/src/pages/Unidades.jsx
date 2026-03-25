@@ -7,7 +7,8 @@ import QuickAddModal from '../components/QuickAddModal';
 import toast from 'react-hot-toast';
 import {
   HiOutlinePencil, HiOutlineQrcode, HiOutlineClipboardList,
-  HiOutlineServer, HiOutlineTrash, HiOutlineLightningBolt
+  HiOutlineServer, HiOutlineTrash, HiOutlineLightningBolt,
+  HiOutlineRefresh, HiOutlineArchive
 } from 'react-icons/hi';
 
 export default function Unidades() {
@@ -16,6 +17,9 @@ export default function Unidades() {
   const [loading, setLoading] = useState(true);
   const [editModal, setEditModal] = useState(false);
   const [quickModal, setQuickModal] = useState(false);
+  const [actionModal, setActionModal] = useState(false);
+  const [actionType, setActionType] = useState(''); // 'devolucao' ou 'baixa'
+  const [actionTarget, setActionTarget] = useState(null);
   const [editing, setEditing] = useState(null);
   const [qrModal, setQrModal] = useState(false);
   const [qrUnidade, setQrUnidade] = useState(null);
@@ -26,6 +30,7 @@ export default function Unidades() {
   const [filtroBusca, setFiltroBusca] = useState('');
   const [modelos, setModelos] = useState([]);
   const [form, setForm] = useState({ numero_serie: '', etiqueta_patrimonial: '', local: '', observacoes: '' });
+  const [actionForm, setActionForm] = useState({ observacao: '' });
 
   useEffect(() => { loadModelos(); }, []);
   useEffect(() => { load(); }, [filtroStatus, filtroBusca]);
@@ -51,6 +56,13 @@ export default function Unidades() {
     setEditModal(true);
   };
 
+  const openAction = (u, type) => {
+    setActionTarget(u);
+    setActionType(type);
+    setActionForm({ observacao: '' });
+    setActionModal(true);
+  };
+
   const openQR = (u) => { setQrUnidade(u); setQrModal(true); };
 
   const openHist = async (u) => {
@@ -72,11 +84,26 @@ export default function Unidades() {
     } catch (err) { toast.error(err.response?.data?.error || 'Erro ao salvar.'); }
   };
 
+  const confirmAction = async (e) => {
+    e.preventDefault();
+    try {
+      const endpoint = actionType === 'devolucao' ? '/movimentacoes/devolucao' : '/movimentacoes/baixa';
+      await api.post(endpoint, {
+        modelo_id: actionTarget.modelo_id,
+        unidade_id: actionTarget.id,
+        observacao: actionForm.observacao
+      });
+      toast.success(actionType === 'devolucao' ? 'Devolução realizada com sucesso!' : 'Baixa realizada com sucesso!');
+      setActionModal(false);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erro ao processar ação.');
+    }
+  };
+
   const excluir = async (u) => {
     const label = u.numero_serie || u.etiqueta_patrimonial || `ID ${u.id}`;
-    const confirmMsg = u.status === 'disponivel'
-      ? `Excluir a unidade "${label}"? Esta ação não pode ser desfeita.`
-      : `A unidade "${label}" está com status "${statusLabels[u.status]}". Deseja marcá-la como Baixada?`;
+    const confirmMsg = `Excluir PERMANENTEMENTE a unidade "${label}"? Esta ação removerá o registro físico do banco de dados (se não houver histórico).`;
     if (!window.confirm(confirmMsg)) return;
     try {
       const res = await api.delete(`/unidades/${u.id}`);
@@ -162,6 +189,28 @@ export default function Unidades() {
                 <td className="p-4 text-gray-300">{u.destinatario_nome || '—'}</td>
                 <td className="p-4 text-gray-400">{u.local || '—'}</td>
                 <td className="p-4 text-right whitespace-nowrap">
+                  {/* Ações de Plano de Devolução */}
+                  {u.status === 'em_uso' && (
+                    <button 
+                      onClick={() => openAction(u, 'devolucao')} 
+                      className="p-2 rounded-lg hover:bg-dark-600 text-cyber-blue hover:text-white transition-all hover:scale-110" 
+                      title="Devolver Equipamento"
+                    >
+                      <HiOutlineRefresh className="w-4 h-4" />
+                    </button>
+                  )}
+                  {u.status !== 'baixado' && (
+                    <button 
+                      onClick={() => openAction(u, 'baixa')} 
+                      className="p-2 rounded-lg hover:bg-dark-600 text-cyber-red hover:text-white transition-all hover:scale-110" 
+                      title="Dar Baixa (Descarte)"
+                    >
+                      <HiOutlineArchive className="w-4 h-4" />
+                    </button>
+                  )}
+
+                  <span className="inline-block w-[1px] h-4 bg-dark-600 mx-1 align-middle" />
+
                   <button onClick={() => openQR(u)} className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-green transition-colors" title="QR Code">
                     <HiOutlineQrcode className="w-4 h-4" />
                   </button>
@@ -174,7 +223,7 @@ export default function Unidades() {
                   <button
                     onClick={() => excluir(u)}
                     className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-red transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    title={u.status === 'em_uso' ? 'Em uso — faça a devolução primeiro' : u.status === 'manutencao' ? 'Em manutenção — encerre antes de excluir' : 'Excluir unidade'}
+                    title={u.status === 'em_uso' ? 'Em uso — faça a devolução primeiro' : u.status === 'manutencao' ? 'Em manutenção — encerre antes de excluir' : 'Excluir unidade do banco'}
                     disabled={u.status === 'em_uso' || u.status === 'manutencao'}
                   >
                     <HiOutlineTrash className="w-4 h-4" />
@@ -185,6 +234,35 @@ export default function Unidades() {
           </tbody>
         </table>
       </div>
+
+      {/* Modal de Ação (Devolução ou Baixa) */}
+      <Modal isOpen={actionModal} onClose={() => setActionModal(false)} title={actionType === 'devolucao' ? 'Confirmar Devolução' : 'Confirmar Baixa (Descarte)'}>
+        <form onSubmit={confirmAction} className="space-y-4">
+          <div className="p-4 bg-dark-900/50 rounded-xl border border-dark-600/50 space-y-1">
+            <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Item Selecionado</p>
+            <p className="text-white font-medium">{actionTarget?.modelo_nome}</p>
+            <p className="text-xs text-gray-400">S/N: {actionTarget?.numero_serie || '—'} {actionTarget?.destinatario_nome ? `| Usuário: ${actionTarget.destinatario_nome}` : ''}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Motivo / Observação</label>
+            <textarea 
+              value={actionForm.observacao} 
+              onChange={e => setActionForm({...actionForm, observacao: e.target.value})} 
+              className="input-field h-24" 
+              placeholder={actionType === 'devolucao' ? "Ex: Fim do contrato, substituição de equipamento..." : "Ex: Equipamento quebrado, obsolescência..."}
+              required
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button type="submit" className={`btn-primary flex-1 ${actionType === 'baixa' ? 'bg-cyber-red hover:bg-cyber-red/80 shadow-cyber-red/10' : ''}`}>
+              Confirmar {actionType === 'devolucao' ? 'Devolução' : 'Baixa'}
+            </button>
+            <button type="button" onClick={() => setActionModal(false)} className="btn-secondary flex-1">Cancelar</button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Modal de EDIÇÃO de dados físicos (mantido) */}
       <Modal isOpen={editModal} onClose={() => setEditModal(false)} title="Editar Dados da Unidade">

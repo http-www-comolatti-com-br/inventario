@@ -4,7 +4,7 @@ import {
   HiOutlineViewGrid, HiOutlineCube, HiOutlineTag, HiOutlineClipboardList,
   HiOutlineUsers, HiOutlineUserGroup, HiOutlineSwitchHorizontal,
   HiOutlineSearch, HiOutlineLogout, HiOutlineServer, HiOutlineChip,
-  HiOutlineQuestionMarkCircle, HiOutlineLightningBolt
+  HiOutlineQuestionMarkCircle, HiOutlineLightningBolt, HiOutlineCollection
 } from 'react-icons/hi';
 
 export default function Sidebar({ collapsed, onToggle, onQuickAdd }) {
@@ -24,6 +24,7 @@ export default function Sidebar({ collapsed, onToggle, onQuickAdd }) {
     { to: '/estoque', icon: HiOutlineClipboardList, label: 'Consumíveis' },
     { to: '/destinatarios', icon: HiOutlineUserGroup, label: 'Destinatários' },
     { to: '/movimentacoes', icon: HiOutlineSwitchHorizontal, label: 'Movimentações' },
+    { to: '/entrada-massa', icon: HiOutlineCollection, label: 'Entrada em Massa' },
     { to: '/consultas', icon: HiOutlineSearch, label: 'Consultas' },
     { to: '/ajuda', icon: HiOutlineQuestionMarkCircle, label: 'Ajuda' },
   ];

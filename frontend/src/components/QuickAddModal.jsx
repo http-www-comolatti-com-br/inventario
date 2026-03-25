@@ -236,11 +236,10 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
               return (
                 <div key={s.id} className="flex items-center flex-1">
                   <div className="flex flex-col items-center">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
-                      isDone ? 'bg-cyber-green border-cyber-green' :
-                      isActive ? 'bg-cyber-cyan/20 border-cyber-cyan' :
-                      'bg-dark-700 border-dark-500'
-                    }`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${isDone ? 'bg-cyber-green border-cyber-green' :
+                        isActive ? 'bg-cyber-cyan/20 border-cyber-cyan' :
+                          'bg-dark-700 border-dark-500'
+                      }`}>
                       {isDone
                         ? <HiOutlineCheck className="w-5 h-5 text-white" />
                         : <Icon className={`w-5 h-5 ${isActive ? 'text-cyber-cyan' : 'text-gray-500'}`} />
@@ -305,11 +304,10 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
                           <button
                             key={m.id}
                             onClick={() => setModeloId(m.id)}
-                            className={`w-full text-left px-4 py-3 rounded-xl border transition-all ${
-                              modeloId == m.id
+                            className={`w-full text-left px-4 py-3 rounded-xl border transition-all ${modeloId == m.id
                                 ? 'border-cyber-cyan bg-cyber-cyan/10 text-white'
                                 : 'border-dark-600 bg-dark-700/50 text-gray-300 hover:border-dark-500 hover:bg-dark-700'
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center justify-between">
                               <div>
@@ -327,21 +325,21 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-medium text-gray-400 mb-1">Nome do Equipamento *</label>
-                          <input value={novoModelo.nome} onChange={e => setNovoModelo({...novoModelo, nome: e.target.value})} className="input-field" placeholder="Ex: Notebook Dell" />
+                          <input value={novoModelo.nome} onChange={e => setNovoModelo({ ...novoModelo, nome: e.target.value })} className="input-field" placeholder="Ex: Notebook Dell" />
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-400 mb-1">Marca *</label>
-                          <input value={novoModelo.marca} onChange={e => setNovoModelo({...novoModelo, marca: e.target.value})} className="input-field" placeholder="Ex: Dell" />
+                          <input value={novoModelo.marca} onChange={e => setNovoModelo({ ...novoModelo, marca: e.target.value })} className="input-field" placeholder="Ex: Dell" />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-medium text-gray-400 mb-1">Modelo / Part Number</label>
-                          <input value={novoModelo.modelo} onChange={e => setNovoModelo({...novoModelo, modelo: e.target.value})} className="input-field" placeholder="Ex: Latitude 5420" />
+                          <input value={novoModelo.modelo} onChange={e => setNovoModelo({ ...novoModelo, modelo: e.target.value })} className="input-field" placeholder="Ex: Latitude 5420" />
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-gray-400 mb-1">Categoria *</label>
-                          <select value={novoModelo.categoria_id} onChange={e => setNovoModelo({...novoModelo, categoria_id: e.target.value})} className="select-field">
+                          <select value={novoModelo.categoria_id} onChange={e => setNovoModelo({ ...novoModelo, categoria_id: e.target.value })} className="select-field">
                             <option value="">Selecione...</option>
                             {categorias.map(c => (
                               <option key={c.id} value={c.id}>{c.nome}{c.subcategoria ? ` / ${c.subcategoria}` : ''}</option>
@@ -351,7 +349,7 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-400 mb-1">Especificações</label>
-                        <input value={novoModelo.especificacoes} onChange={e => setNovoModelo({...novoModelo, especificacoes: e.target.value})} className="input-field" placeholder="Ex: i5, 16GB RAM, 512GB SSD" />
+                        <input value={novoModelo.especificacoes} onChange={e => setNovoModelo({ ...novoModelo, especificacoes: e.target.value })} className="input-field" placeholder="Ex: i5, 16GB RAM, 512GB SSD" />
                       </div>
                     </div>
                   )}
@@ -374,7 +372,7 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
                       <label className="block text-xs font-medium text-gray-400 mb-1">Número de Série</label>
                       <input
                         value={unidade.numero_serie}
-                        onChange={e => setUnidade({...unidade, numero_serie: e.target.value})}
+                        onChange={e => setUnidade({ ...unidade, numero_serie: e.target.value })}
                         className="input-field"
                         placeholder="SN123456789"
                       />
@@ -383,7 +381,7 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
                       <label className="block text-xs font-medium text-gray-400 mb-1">Etiqueta Patrimonial</label>
                       <input
                         value={unidade.etiqueta_patrimonial}
-                        onChange={e => setUnidade({...unidade, etiqueta_patrimonial: e.target.value})}
+                        onChange={e => setUnidade({ ...unidade, etiqueta_patrimonial: e.target.value })}
                         className="input-field"
                         placeholder="PAT-00123"
                       />
@@ -394,7 +392,7 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
                     <label className="block text-xs font-medium text-gray-400 mb-1">Local / Sala</label>
                     <input
                       value={unidade.local}
-                      onChange={e => setUnidade({...unidade, local: e.target.value})}
+                      onChange={e => setUnidade({ ...unidade, local: e.target.value })}
                       className="input-field"
                       placeholder="Ex: Sala 201, Filial SP"
                     />
@@ -404,7 +402,7 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
                     <label className="block text-xs font-medium text-gray-400 mb-1">Observações do equipamento</label>
                     <textarea
                       value={unidade.observacoes}
-                      onChange={e => setUnidade({...unidade, observacoes: e.target.value})}
+                      onChange={e => setUnidade({ ...unidade, observacoes: e.target.value })}
                       className="input-field h-16 resize-none"
                       placeholder="Estado de conservação, acessórios inclusos..."
                     />
@@ -461,11 +459,10 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
                           <button
                             key={d.id}
                             onClick={() => setDestinatarioId(d.id)}
-                            className={`w-full text-left px-4 py-3 rounded-xl border transition-all ${
-                              destinatarioId == d.id
+                            className={`w-full text-left px-4 py-3 rounded-xl border transition-all ${destinatarioId == d.id
                                 ? 'border-cyber-cyan bg-cyber-cyan/10 text-white'
                                 : 'border-dark-600 bg-dark-700/50 text-gray-300 hover:border-dark-500 hover:bg-dark-700'
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center justify-between">
                               <div>
@@ -513,11 +510,10 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
             {STEPS.map(s => (
               <div
                 key={s.id}
-                className={`h-1.5 rounded-full transition-all ${
-                  step === s.id ? 'w-8 bg-cyber-cyan' :
-                  step > s.id ? 'w-4 bg-cyber-green' :
-                  'w-4 bg-dark-600'
-                }`}
+                className={`h-1.5 rounded-full transition-all ${step === s.id ? 'w-8 bg-cyber-cyan' :
+                    step > s.id ? 'w-4 bg-cyber-green' :
+                      'w-4 bg-dark-600'
+                  }`}
               />
             ))}
           </div>

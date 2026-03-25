@@ -58,7 +58,8 @@ INSERT INTO categorias (nome, subcategoria) VALUES
 -- Telefonia
 ('Telefonia', 'Aparelho IP'),
 ('Telefonia', 'Central PABX'),
-('Telefonia', 'Headset Telefônico');
+('Telefonia', 'Headset Telefônico')
+ON CONFLICT (nome, subcategoria) DO NOTHING;
 
 -- Verificar inserções
 SELECT * FROM categorias ORDER BY nome, subcategoria;
