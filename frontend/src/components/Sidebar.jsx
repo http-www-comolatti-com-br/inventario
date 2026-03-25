@@ -4,10 +4,10 @@ import {
   HiOutlineViewGrid, HiOutlineCube, HiOutlineTag, HiOutlineClipboardList,
   HiOutlineUsers, HiOutlineUserGroup, HiOutlineSwitchHorizontal,
   HiOutlineSearch, HiOutlineLogout, HiOutlineServer, HiOutlineChip,
-  HiOutlineQuestionMarkCircle
+  HiOutlineQuestionMarkCircle, HiOutlineLightningBolt
 } from 'react-icons/hi';
 
-export default function Sidebar({ collapsed, onToggle }) {
+export default function Sidebar({ collapsed, onToggle, onQuickAdd }) {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -49,6 +49,21 @@ export default function Sidebar({ collapsed, onToggle }) {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Botão Entrada Rápida em destaque */}
+      <div className="px-3 pt-3">
+        <button
+          onClick={onQuickAdd}
+          title={collapsed ? 'Entrada Rápida' : undefined}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-sm transition-all
+            bg-gradient-to-r from-cyber-cyan/20 to-cyber-blue/20 border border-cyber-cyan/30
+            text-cyber-cyan hover:from-cyber-cyan/30 hover:to-cyber-blue/30 hover:border-cyber-cyan/60
+            ${collapsed ? 'justify-center' : ''}`}
+        >
+          <HiOutlineLightningBolt className="w-5 h-5 flex-shrink-0" />
+          {!collapsed && <span>Entrada Rápida</span>}
+        </button>
       </div>
 
       {/* Navigation */}

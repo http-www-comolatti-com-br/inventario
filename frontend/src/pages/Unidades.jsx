@@ -3,16 +3,19 @@ import { useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import Modal from '../components/Modal';
 import QRCodeModal from '../components/QRCodeModal';
+import QuickAddModal from '../components/QuickAddModal';
 import toast from 'react-hot-toast';
-import { HiOutlinePlus, HiOutlinePencil, HiOutlineQrcode, HiOutlineClipboardList, HiOutlineServer, HiOutlineTrash } from 'react-icons/hi';
+import {
+  HiOutlinePencil, HiOutlineQrcode, HiOutlineClipboardList,
+  HiOutlineServer, HiOutlineTrash, HiOutlineLightningBolt
+} from 'react-icons/hi';
 
 export default function Unidades() {
-
   const [searchParams] = useSearchParams();
   const [unidades, setUnidades] = useState([]);
-  const [modelos, setModelos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState(false);
+  const [editModal, setEditModal] = useState(false);
+  const [quickModal, setQuickModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [qrModal, setQrModal] = useState(false);
   const [qrUnidade, setQrUnidade] = useState(null);
@@ -21,7 +24,8 @@ export default function Unidades() {
   const [histUnidade, setHistUnidade] = useState(null);
   const [filtroStatus, setFiltroStatus] = useState(searchParams.get('status') || '');
   const [filtroBusca, setFiltroBusca] = useState('');
-  const [form, setForm] = useState({ modelo_id: '', numero_serie: '', etiqueta_patrimonial: '', local: '', observacoes: '' });
+  const [modelos, setModelos] = useState([]);
+  const [form, setForm] = useState({ numero_serie: '', etiqueta_patrimonial: '', local: '', observacoes: '' });
 
   useEffect(() => { loadModelos(); }, []);
   useEffect(() => { load(); }, [filtroStatus, filtroBusca]);
@@ -41,8 +45,11 @@ export default function Unidades() {
     try { const res = await api.get('/modelos', { params: { tipo: 'patrimonio' } }); setModelos(res.data); } catch {}
   };
 
-  const openNew = () => { setEditing(null); setForm({ modelo_id: '', numero_serie: '', etiqueta_patrimonial: '', local: '', observacoes: '' }); setModal(true); };
-  const openEdit = (u) => { setEditing(u); setForm({ modelo_id: u.modelo_id, numero_serie: u.numero_serie || '', etiqueta_patrimonial: u.etiqueta_patrimonial || '', local: u.local || '', observacoes: u.observacoes || '' }); setModal(true); };
+  const openEdit = (u) => {
+    setEditing(u);
+    setForm({ numero_serie: u.numero_serie || '', etiqueta_patrimonial: u.etiqueta_patrimonial || '', local: u.local || '', observacoes: u.observacoes || '' });
+    setEditModal(true);
+  };
 
   const openQR = (u) => { setQrUnidade(u); setQrModal(true); };
 
@@ -57,16 +64,10 @@ export default function Unidades() {
 
   const save = async (e) => {
     e.preventDefault();
-    if (!form.modelo_id) return toast.error('Modelo é obrigatório.');
     try {
-      if (editing) {
-        await api.put(`/unidades/${editing.id}`, form);
-        toast.success('Unidade atualizada!');
-      } else {
-        await api.post('/unidades', form);
-        toast.success('Unidade cadastrada!');
-      }
-      setModal(false);
+      await api.put(`/unidades/${editing.id}`, form);
+      toast.success('Unidade atualizada!');
+      setEditModal(false);
       load();
     } catch (err) { toast.error(err.response?.data?.error || 'Erro ao salvar.'); }
   };
@@ -76,9 +77,7 @@ export default function Unidades() {
     const confirmMsg = u.status === 'disponivel'
       ? `Excluir a unidade "${label}"? Esta ação não pode ser desfeita.`
       : `A unidade "${label}" está com status "${statusLabels[u.status]}". Deseja marcá-la como Baixada?`;
-
     if (!window.confirm(confirmMsg)) return;
-
     try {
       const res = await api.delete(`/unidades/${u.id}`);
       if (res.data.baixado) {
@@ -110,8 +109,8 @@ export default function Unidades() {
           <h1 className="page-title">Patrimônio</h1>
           <p className="text-gray-500 mt-1">Controle de unidades individuais de equipamentos</p>
         </div>
-        <button onClick={openNew} className="btn-primary flex items-center gap-2">
-          <HiOutlinePlus className="w-5 h-5" /> Nova Unidade
+        <button onClick={() => setQuickModal(true)} className="btn-primary flex items-center gap-2">
+          <HiOutlineLightningBolt className="w-5 h-5" /> Entrada Rápida
         </button>
       </div>
 
@@ -169,7 +168,7 @@ export default function Unidades() {
                   <button onClick={() => openHist(u)} className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-purple transition-colors" title="Histórico">
                     <HiOutlineClipboardList className="w-4 h-4" />
                   </button>
-                  <button onClick={() => openEdit(u)} className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-cyan transition-colors" title="Editar">
+                  <button onClick={() => openEdit(u)} className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-cyan transition-colors" title="Editar dados físicos">
                     <HiOutlinePencil className="w-4 h-4" />
                   </button>
                   <button
@@ -187,16 +186,9 @@ export default function Unidades() {
         </table>
       </div>
 
-      {/* Modal Nova/Editar Unidade */}
-      <Modal isOpen={modal} onClose={() => setModal(false)} title={editing ? 'Editar Unidade' : 'Nova Unidade'}>
+      {/* Modal de EDIÇÃO de dados físicos (mantido) */}
+      <Modal isOpen={editModal} onClose={() => setEditModal(false)} title="Editar Dados da Unidade">
         <form onSubmit={save} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Modelo *</label>
-            <select value={form.modelo_id} onChange={e => setForm({...form, modelo_id: e.target.value})} className="select-field" disabled={!!editing}>
-              <option value="">Selecione o modelo...</option>
-              {modelos.map(m => <option key={m.id} value={m.id}>{m.nome} - {m.marca} {m.modelo}</option>)}
-            </select>
-          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Número de Série</label>
@@ -215,9 +207,9 @@ export default function Unidades() {
             <label className="block text-sm font-medium text-gray-400 mb-1">Observações</label>
             <textarea value={form.observacoes} onChange={e => setForm({...form, observacoes: e.target.value})} className="input-field h-20" />
           </div>
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-2">
             <button type="submit" className="btn-primary flex-1">Salvar</button>
-            <button type="button" onClick={() => setModal(false)} className="btn-secondary flex-1">Cancelar</button>
+            <button type="button" onClick={() => setEditModal(false)} className="btn-secondary flex-1">Cancelar</button>
           </div>
         </form>
       </Modal>
@@ -256,6 +248,9 @@ export default function Unidades() {
           </div>
         )}
       </Modal>
+
+      {/* Wizard de Entrada Rápida */}
+      <QuickAddModal isOpen={quickModal} onClose={() => setQuickModal(false)} onSuccess={load} />
     </div>
   );
 }

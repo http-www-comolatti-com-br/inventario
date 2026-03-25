@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import QuickAddModal from '../components/QuickAddModal';
 import {
   HiOutlineServer, HiOutlineCheckCircle, HiOutlineDesktopComputer, HiOutlineCog,
   HiOutlineExclamationCircle, HiOutlineTrendingUp, HiOutlineXCircle, HiOutlineClipboardList,
   HiOutlineArrowRight, HiOutlineSwitchHorizontal, HiOutlineArchive, HiOutlineUserGroup,
-  HiOutlineCube, HiOutlineChevronRight
+  HiOutlineCube, HiOutlineChevronRight, HiOutlineLightningBolt
 } from 'react-icons/hi';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -42,6 +43,7 @@ const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value }
 };
 
 export default function Dashboard() {
+  const [quickModal, setQuickModal] = useState(false);
   const [resumo, setResumo] = useState(null);
   const [porCategoria, setPorCategoria] = useState([]);
   const [porDestinatario, setPorDestinatario] = useState([]);
@@ -90,9 +92,17 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="page-title text-3xl">Dashboard</h1>
-        <p className="text-gray-500 mt-1">Visão geral do inventário de TI — acompanhe equipamentos, consumíveis e movimentações</p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="page-title text-3xl">Dashboard</h1>
+          <p className="text-gray-500 mt-1">Visão geral do inventário de TI — acompanhe equipamentos, consumíveis e movimentações</p>
+        </div>
+        <button
+          onClick={() => setQuickModal(true)}
+          className="btn-primary flex items-center gap-2 px-5 py-2.5 text-sm font-semibold"
+        >
+          <HiOutlineLightningBolt className="w-5 h-5" /> Entrada Rápida
+        </button>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
@@ -374,11 +384,22 @@ export default function Dashboard() {
       <div className="glass-card p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Ações Rápidas</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {/* Entrada Rápida — destaque */}
+          <div
+            onClick={() => setQuickModal(true)}
+            className="col-span-2 md:col-span-2 p-4 rounded-xl bg-gradient-to-br from-cyber-cyan/15 to-cyber-blue/10 border border-cyber-cyan/30 hover:border-cyber-cyan/60 cursor-pointer transition-all hover:scale-[1.01] flex items-center gap-4"
+          >
+            <div className="w-12 h-12 rounded-xl bg-cyber-cyan/20 flex items-center justify-center flex-shrink-0">
+              <HiOutlineLightningBolt className="w-7 h-7 text-cyber-cyan" />
+            </div>
+            <div>
+              <p className="text-white font-semibold">Entrada Rápida</p>
+              <p className="text-xs text-gray-400">Cadastre e destine um equipamento em 3 passos</p>
+            </div>
+          </div>
           {[
-            { label: 'Nova Entrada', desc: 'Registrar recebimento', icon: '📥', path: '/movimentacoes', color: 'from-emerald-500/10 to-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40' },
-            { label: 'Nova Entrega', desc: 'Entregar equipamento', icon: '📦', path: '/movimentacoes', color: 'from-blue-500/10 to-blue-500/5 border-blue-500/20 hover:border-blue-500/40' },
-            { label: 'Cadastrar Item', desc: 'Novo modelo de item', icon: '➕', path: '/modelos', color: 'from-cyan-500/10 to-cyan-500/5 border-cyan-500/20 hover:border-cyan-500/40' },
             { label: 'Consultar', desc: 'Buscar equipamento', icon: '🔍', path: '/consultas', color: 'from-violet-500/10 to-violet-500/5 border-violet-500/20 hover:border-violet-500/40' },
+            { label: 'Destinatários', desc: 'Gerenciar colaboradores', icon: '👥', path: '/destinatarios', color: 'from-pink-500/10 to-pink-500/5 border-pink-500/20 hover:border-pink-500/40' },
           ].map((action, i) => (
             <div
               key={i}
@@ -392,6 +413,8 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
+      {/* Wizard de Entrada Rápida */}
+      <QuickAddModal isOpen={quickModal} onClose={() => setQuickModal(false)} onSuccess={loadData} />
     </div>
   );
 }

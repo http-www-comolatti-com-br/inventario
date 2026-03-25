@@ -1,20 +1,23 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import Modal from '../components/Modal';
+import QuickAddModal from '../components/QuickAddModal';
 import toast from 'react-hot-toast';
-import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineCube } from 'react-icons/hi';
+import { HiOutlinePencil, HiOutlineTrash, HiOutlineCube, HiOutlineLightningBolt } from 'react-icons/hi';
 
 export default function Modelos() {
   const [modelos, setModelos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState(false);
+  const [editModal, setEditModal] = useState(false);
+  const [quickModal, setQuickModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [filtroTipo, setFiltroTipo] = useState('');
   const [filtroBusca, setFiltroBusca] = useState('');
   const [form, setForm] = useState({ tipo: 'patrimonio', categoria_id: '', nome: '', marca: '', modelo: '', part_number: '', especificacoes: '', observacoes: '' });
 
   useEffect(() => { load(); loadCategorias(); }, []);
+  useEffect(() => { load(); }, [filtroTipo, filtroBusca]);
 
   const load = async () => {
     try {
@@ -31,17 +34,10 @@ export default function Modelos() {
     try { const res = await api.get('/categorias'); setCategorias(res.data); } catch {}
   };
 
-  useEffect(() => { load(); }, [filtroTipo, filtroBusca]);
-
-  const openNew = () => {
-    setEditing(null);
-    setForm({ tipo: 'patrimonio', categoria_id: '', nome: '', marca: '', modelo: '', part_number: '', especificacoes: '', observacoes: '' });
-    setModal(true);
-  };
   const openEdit = (m) => {
     setEditing(m);
     setForm({ tipo: m.tipo, categoria_id: m.categoria_id || '', nome: m.nome, marca: m.marca || '', modelo: m.modelo || '', part_number: m.part_number || '', especificacoes: m.especificacoes || '', observacoes: m.observacoes || '' });
-    setModal(true);
+    setEditModal(true);
   };
 
   const save = async (e) => {
@@ -49,14 +45,9 @@ export default function Modelos() {
     if (!form.nome || !form.tipo) return toast.error('Tipo e nome são obrigatórios.');
     try {
       const data = { ...form, categoria_id: form.categoria_id || null };
-      if (editing) {
-        await api.put(`/modelos/${editing.id}`, data);
-        toast.success('Modelo atualizado!');
-      } else {
-        await api.post('/modelos', data);
-        toast.success('Modelo criado!');
-      }
-      setModal(false);
+      await api.put(`/modelos/${editing.id}`, data);
+      toast.success('Modelo atualizado!');
+      setEditModal(false);
       load();
     } catch (err) { toast.error(err.response?.data?.error || 'Erro ao salvar.'); }
   };
@@ -76,8 +67,8 @@ export default function Modelos() {
           <h1 className="page-title">Modelos de Itens</h1>
           <p className="text-gray-500 mt-1">Gerencie os modelos de equipamentos e consumíveis</p>
         </div>
-        <button onClick={openNew} className="btn-primary flex items-center gap-2">
-          <HiOutlinePlus className="w-5 h-5" /> Novo Modelo
+        <button onClick={() => setQuickModal(true)} className="btn-primary flex items-center gap-2">
+          <HiOutlineLightningBolt className="w-5 h-5" /> Entrada Rápida
         </button>
       </div>
 
@@ -108,8 +99,10 @@ export default function Modelos() {
               <tr><td colSpan="6" className="p-8 text-center text-gray-500">Nenhum modelo cadastrado</td></tr>
             ) : modelos.map(m => (
               <tr key={m.id} className="table-row">
-                <td className="p-4 text-white font-medium flex items-center gap-2">
-                  <HiOutlineCube className="w-4 h-4 text-cyber-cyan" /> {m.nome}
+                <td className="p-4 text-white font-medium">
+                  <div className="flex items-center gap-2">
+                    <HiOutlineCube className="w-4 h-4 text-cyber-cyan flex-shrink-0" /> {m.nome}
+                  </div>
                 </td>
                 <td className="p-4">
                   <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${m.tipo === 'patrimonio' ? 'bg-cyber-blue/20 text-cyber-blue' : 'bg-cyber-purple/20 text-cyber-purple'}`}>
@@ -120,8 +113,8 @@ export default function Modelos() {
                 <td className="p-4 text-gray-300">{m.marca || '—'}</td>
                 <td className="p-4 text-gray-300">{m.modelo || '—'}</td>
                 <td className="p-4 text-right">
-                  <button onClick={() => openEdit(m)} className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-cyan transition-colors"><HiOutlinePencil className="w-4 h-4" /></button>
-                  <button onClick={() => remove(m.id)} className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-red transition-colors ml-1"><HiOutlineTrash className="w-4 h-4" /></button>
+                  <button onClick={() => openEdit(m)} className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-cyan transition-colors" title="Editar modelo"><HiOutlinePencil className="w-4 h-4" /></button>
+                  <button onClick={() => remove(m.id)} className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-red transition-colors ml-1" title="Excluir modelo"><HiOutlineTrash className="w-4 h-4" /></button>
                 </td>
               </tr>
             ))}
@@ -129,12 +122,13 @@ export default function Modelos() {
         </table>
       </div>
 
-      <Modal isOpen={modal} onClose={() => setModal(false)} title={editing ? 'Editar Modelo' : 'Novo Modelo'}>
+      {/* Modal de EDIÇÃO (mantido para editar modelos existentes) */}
+      <Modal isOpen={editModal} onClose={() => setEditModal(false)} title="Editar Modelo">
         <form onSubmit={save} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Tipo *</label>
-              <select value={form.tipo} onChange={e => setForm({...form, tipo: e.target.value})} className="select-field" disabled={!!editing}>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Tipo</label>
+              <select value={form.tipo} disabled className="select-field opacity-60 cursor-not-allowed">
                 <option value="patrimonio">Patrimônio</option>
                 <option value="consumivel">Consumível</option>
               </select>
@@ -171,14 +165,17 @@ export default function Modelos() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">Observações</label>
-            <textarea value={form.observacoes} onChange={e => setForm({...form, observacoes: e.target.value})} className="input-field h-20" placeholder="Observações adicionais" />
+            <textarea value={form.observacoes} onChange={e => setForm({...form, observacoes: e.target.value})} className="input-field h-16" placeholder="Observações adicionais" />
           </div>
-          <div className="flex gap-3 pt-4">
-            <button type="submit" className="btn-primary flex-1">Salvar</button>
-            <button type="button" onClick={() => setModal(false)} className="btn-secondary flex-1">Cancelar</button>
+          <div className="flex gap-3 pt-2">
+            <button type="submit" className="btn-primary flex-1">Salvar Alterações</button>
+            <button type="button" onClick={() => setEditModal(false)} className="btn-secondary flex-1">Cancelar</button>
           </div>
         </form>
       </Modal>
+
+      {/* Wizard de Entrada Rápida */}
+      <QuickAddModal isOpen={quickModal} onClose={() => setQuickModal(false)} onSuccess={load} />
     </div>
   );
 }

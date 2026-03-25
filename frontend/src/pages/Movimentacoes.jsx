@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../services/api';
 import Modal from '../components/Modal';
+import QuickAddModal from '../components/QuickAddModal';
 import toast from 'react-hot-toast';
-import { HiOutlinePlus, HiOutlineXCircle } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineXCircle, HiOutlineLightningBolt } from 'react-icons/hi';
 
 const TIPOS = [
   { value: 'entrada', label: 'Entrada', color: 'bg-cyber-green/20 text-cyber-green' },
@@ -13,12 +14,13 @@ const TIPOS = [
   { value: 'baixa', label: 'Baixa', color: 'bg-cyber-red/20 text-cyber-red' },
 ];
 
-// Retorna o filtro de status correto para cada tipo de movimentação
+// Tipos que NÃO são cobertos pelo Wizard (operações pós-entrega)
+const TIPOS_OPERACAO = ['devolucao', 'transferencia', 'manutencao', 'baixa'];
+
 function getStatusFilter(tipoMov) {
   if (tipoMov === 'entrega') return 'disponivel';
   if (tipoMov === 'devolucao') return 'em_uso';
   if (tipoMov === 'transferencia') return 'em_uso';
-  // manutencao, baixa e entrada: sem filtro de status (mostra todas)
   return '';
 }
 
@@ -29,8 +31,9 @@ export default function Movimentacoes() {
   const [destinatarios, setDestinatarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
+  const [quickModal, setQuickModal] = useState(false);
   const [filtroTipo, setFiltroTipo] = useState('');
-  const [tipoMov, setTipoMov] = useState('entrada');
+  const [tipoMov, setTipoMov] = useState('devolucao');
   const [form, setForm] = useState({ modelo_id: '', unidade_id: '', quantidade: '', destinatario_id: '', observacao: '' });
 
   useEffect(() => { load(); loadAux(); }, []);
@@ -63,7 +66,6 @@ export default function Movimentacoes() {
     } catch {}
   };
 
-  // Abre o modal já sabendo o tipo — passa o tipo explicitamente para evitar stale closure
   const openNew = (tipo) => {
     setTipoMov(tipo);
     setForm({ modelo_id: '', unidade_id: '', quantidade: '', destinatario_id: '', observacao: '' });
@@ -71,7 +73,6 @@ export default function Movimentacoes() {
     setModal(true);
   };
 
-  // Recebe tipoAtual como parâmetro para garantir o valor correto (evita stale closure)
   const onModeloChange = (modelo_id, tipoAtual) => {
     const tipo = tipoAtual || tipoMov;
     setForm(prev => ({ ...prev, modelo_id, unidade_id: '' }));
@@ -86,7 +87,7 @@ export default function Movimentacoes() {
 
   const selectedModelo = modelos.find(m => m.id == form.modelo_id);
   const isPatrimonio = selectedModelo?.tipo === 'patrimonio';
-  const needDestinatario = ['entrega', 'transferencia'].includes(tipoMov);
+  const needDestinatario = ['transferencia'].includes(tipoMov);
 
   const save = async (e) => {
     e.preventDefault();
@@ -129,12 +130,28 @@ export default function Movimentacoes() {
           <h1 className="page-title">Movimentações</h1>
           <p className="text-gray-500 mt-1">Registre e acompanhe todas as movimentações de estoque</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          {TIPOS.map(t => (
-            <button key={t.value} onClick={() => openNew(t.value)} className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all hover:scale-105 ${t.color} border border-transparent hover:border-current`}>
-              <HiOutlinePlus className="w-3 h-3 inline mr-1" /> {t.label}
-            </button>
-          ))}
+        <div className="flex gap-2 flex-wrap items-center">
+          {/* Botão principal: Entrada Rápida (cobre Entrada + Entrega) */}
+          <button
+            onClick={() => setQuickModal(true)}
+            className="btn-primary flex items-center gap-2 px-4 py-2"
+          >
+            <HiOutlineLightningBolt className="w-4 h-4" /> Entrada Rápida
+          </button>
+
+          {/* Botões de operações pós-entrega */}
+          {TIPOS_OPERACAO.map(t => {
+            const cfg = TIPOS.find(x => x.value === t);
+            return (
+              <button
+                key={t}
+                onClick={() => openNew(t)}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all hover:scale-105 ${cfg.color} border border-transparent hover:border-current`}
+              >
+                <HiOutlinePlus className="w-3 h-3 inline mr-1" /> {cfg.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -184,8 +201,8 @@ export default function Movimentacoes() {
         </table>
       </div>
 
-      {/* Modal Nova Movimentação */}
-      <Modal isOpen={modal} onClose={() => setModal(false)} title={`Nova ${tipoLabel(tipoMov)}`}>
+      {/* Modal para operações pós-entrega (Devolução, Transferência, Manutenção, Baixa) */}
+      <Modal isOpen={modal} onClose={() => setModal(false)} title={`Registrar ${tipoLabel(tipoMov)}`}>
         <form onSubmit={save} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">Modelo/Item *</label>
@@ -214,8 +231,7 @@ export default function Movimentacoes() {
                 <option value="">Selecione a unidade...</option>
                 {unidades.length === 0 && form.modelo_id ? (
                   <option disabled value="">
-                    {tipoMov === 'entrega' ? 'Nenhuma unidade disponível para entrega' :
-                     tipoMov === 'devolucao' ? 'Nenhuma unidade em uso para devolução' :
+                    {tipoMov === 'devolucao' ? 'Nenhuma unidade em uso para devolução' :
                      tipoMov === 'transferencia' ? 'Nenhuma unidade em uso para transferência' :
                      'Nenhuma unidade cadastrada'}
                   </option>
@@ -228,7 +244,6 @@ export default function Movimentacoes() {
               </select>
               {isPatrimonio && form.modelo_id && unidades.length === 0 && (
                 <p className="text-xs text-cyber-yellow mt-1">
-                  {tipoMov === 'entrega' && '⚠ Não há unidades com status "Disponível" para este modelo. Cadastre uma unidade primeiro em Patrimônio.'}
                   {tipoMov === 'devolucao' && '⚠ Não há unidades com status "Em Uso" para este modelo.'}
                   {tipoMov === 'transferencia' && '⚠ Não há unidades com status "Em Uso" para este modelo.'}
                   {(tipoMov === 'manutencao' || tipoMov === 'baixa') && '⚠ Nenhuma unidade cadastrada para este modelo.'}
@@ -253,7 +268,7 @@ export default function Movimentacoes() {
 
           {needDestinatario && (
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Destinatário *</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Novo Destinatário *</label>
               <select
                 value={form.destinatario_id}
                 onChange={e => setForm({ ...form, destinatario_id: e.target.value })}
@@ -279,12 +294,15 @@ export default function Movimentacoes() {
             />
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-2">
             <button type="submit" className="btn-primary flex-1">Registrar {tipoLabel(tipoMov)}</button>
             <button type="button" onClick={() => setModal(false)} className="btn-secondary flex-1">Cancelar</button>
           </div>
         </form>
       </Modal>
+
+      {/* Wizard de Entrada Rápida */}
+      <QuickAddModal isOpen={quickModal} onClose={() => setQuickModal(false)} onSuccess={load} />
     </div>
   );
 }
