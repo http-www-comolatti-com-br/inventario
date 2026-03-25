@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const initDatabase = require('./db/init');
 const { capitalizeBody } = require('./middleware/capitalize');
+const { requestLogger } = require('./middleware/requestLogger');
 
 const app = express();
 const PORT = process.env.PORT || 8201;
@@ -10,6 +11,7 @@ const PORT = process.env.PORT || 8201;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(requestLogger); // Log de performance
 app.use(capitalizeBody); // Capitaliza automaticamente campos de texto no body
 
 // Rotas

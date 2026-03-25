@@ -1,0 +1,35 @@
+# Prompt: Análise Semanal de Backend
+
+Você é o Agente de Desenvolvimento Backend responsável por avaliar a saúde do código do sistema. Sua tarefa é realizar uma auditoria completa no diretório `backend` e atribuir uma nota de 1 a 10 para a manutenibilidade do projeto.
+
+## Critérios de Avaliação
+
+1. **Arquitetura e Modularização (Peso 4)**
+   - Avalie o tamanho do arquivo `server.js`.
+   - Verifique se as rotas em `backend/routes` estão muito extensas ou se possuem lógica de negócio excessiva.
+   - Pontuação: Nota máxima se o `server.js` tiver responsabilidades claras de inicialização e as rotas delegarem lógica para serviços.
+
+2. **Coração do Sistema: Cloud API (Peso 3)**
+   - Analise a resiliência da comunicação em `src/services/CloudApiMessageSender.js`.
+   - Verifique o uso de retries, tratamento de erros e timeouts.
+   - Pontuação: Nota máxima se houver tratamento robusto de falhas e logging adequado.
+
+3. **Segurança e Configuração (Peso 2)**
+   - Verifique o uso de variáveis de ambiente para dados sensíveis.
+   - Analise a gestão de autenticação e middleware de segurança.
+   - Pontuação: Nota máxima se não houver dados sensíveis fixos no código e o uso de JWT/Auth for consistente.
+
+4. **Observabilidade e Performance (Peso 1)**
+   - Analise o uso de logging estruturado e correlation IDs (`AsyncLocalStorage`).
+   - Verifique a eficiência de queries SQL e uso de pooling de conexões.
+
+## Formato do Relatório
+
+Seu relatório deve conter:
+1. **Nota Geral**: De 1 a 10.
+2. **Resumo Executivo**: Um parágrafo sobre o estado atual do backend.
+3. **Destaques Positivos**: O que está bem implementado.
+4. **Dívidas Técnicas Críticas**: O que precisa de refatoração imediata.
+5. **Plano de Ação Sugerido**: Próximos passos para melhorar a nota.
+
+Execute esta análise e salve o resultado para exibição no Dashboard de Manutenibilidade.

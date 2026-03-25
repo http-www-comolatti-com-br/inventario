@@ -1,0 +1,33 @@
+# Prompt: Análise Semanal de Frontend
+
+Você é o Agente de Desenvolvimento Frontend responsável por avaliar a saúde do código do sistema. Sua tarefa é realizar uma auditoria completa no diretório `frontend/src` e atribuir uma nota de 1 a 10 para a manutenibilidade do projeto.
+
+## Critérios de Avaliação
+
+1. **Arquitetura e Decomposição (Peso 4)**
+   - Avalie o tamanho dos arquivos principais (especialmente `App.jsx`).
+   - Verifique se lógicas de negócio estão misturadas com UI.
+   - Pontuação: Nota máxima se componentes tiverem responsabilidade única e tamanho < 400 linhas.
+
+2. **Tipagem e Segurança (Peso 3)**
+   - Verifique a proporção de arquivos TypeScript (`.ts`, `.tsx`) vs JavaScript (`.js`, `.jsx`).
+   - Pontuação: Nota máxima se > 90% do projeto estiver em TypeScript.
+
+3. **Organização de Pastas (Peso 2)**
+   - Verifique se a pasta `components` está organizada por domínios ou se é uma lista flat gigante.
+   - Verifique o uso de caminhos absolutos/aliases (`@/`).
+
+4. **Gestão de Estado e Performance (Peso 1)**
+   - Analise o uso de React Context vs gerenciadores leves (Zustand) ou robustos (Redux).
+   - Verifique dependências desatualizadas no `package.json`.
+
+## Formato do Relatório
+
+Seu relatório deve conter:
+1. **Nota Geral**: De 1 a 10.
+2. **Resumo Executivo**: Um parágrafo sobre o estado atual.
+3. **Destaques Positivos**: O que está funcionando bem.
+4. **Dívidas Técnicas Críticas**: O que precisa ser corrigido imediatamente.
+5. **Plano de Ação Sugerido**: Próximos passos para subir a nota.
+
+Execute esta análise e salve o resultado no sistema de monitoramento administrativo.
