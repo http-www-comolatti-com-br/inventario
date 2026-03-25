@@ -9,7 +9,21 @@ async function initDatabase() {
     const schemaPath = path.join(__dirname, 'schema.sql');
     const schema = fs.readFileSync(schemaPath, 'utf8');
     await client.query(schema);
-    console.log('✅ Banco de dados inicializado com sucesso');
+    console.log('\u2705 Banco de dados inicializado com sucesso');
+
+    // Remove duplicatas de categorias que possam existir no banco
+    // Mantém apenas o registro com menor id para cada combinação (nome, subcategoria)
+    const dupResult = await client.query(`
+      DELETE FROM categorias
+      WHERE id NOT IN (
+        SELECT MIN(id)
+        FROM categorias
+        GROUP BY nome, COALESCE(subcategoria, '')
+      )
+    `);
+    if (dupResult.rowCount > 0) {
+      console.log(`\u2705 ${dupResult.rowCount} categoria(s) duplicada(s) removida(s)`);
+    }
 
     // Verificar se admin existe, se não, criar com hash correto
     const res = await client.query("SELECT id FROM usuarios WHERE login = 'admin'");

@@ -31,8 +31,20 @@ CREATE TABLE IF NOT EXISTS categorias (
   id SERIAL PRIMARY KEY,
   nome VARCHAR(100) NOT NULL,
   subcategoria VARCHAR(100),
-  criado_em TIMESTAMP DEFAULT NOW()
+  criado_em TIMESTAMP DEFAULT NOW(),
+  CONSTRAINT uq_categorias_nome_subcategoria UNIQUE (nome, subcategoria)
 );
+
+-- Adiciona constraint de unicidade caso a tabela já exista sem ela
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'uq_categorias_nome_subcategoria'
+  ) THEN
+    ALTER TABLE categorias ADD CONSTRAINT uq_categorias_nome_subcategoria UNIQUE (nome, subcategoria);
+  END IF;
+END;
+$$;
 
 -- Tabela de modelos de itens
 CREATE TABLE IF NOT EXISTS modelos (
