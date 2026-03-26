@@ -178,32 +178,23 @@ export default function Modelos() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Categoria</label>
-              <div className="space-y-2">
-                <input 
-                  value={buscaCategoria} 
-                  onChange={e => setBuscaCategoria(e.target.value)} 
-                  className="input-field h-9 text-xs" 
-                  placeholder="Pesquisar categoria..." 
-                />
-                <select 
-                  value={form.categoria_id} 
-                  onChange={e => {
-                    const val = e.target.value;
-                    setForm({...form, categoria_id: val});
-                    if (val) {
-                      const cat = categorias.find(c => c.id == val);
-                      if (cat) setBuscaCategoria(cat.subcategoria ? `${cat.nome} > ${cat.subcategoria}` : cat.nome);
-                    }
-                  }} 
-                  className="select-field"
-                >
-                  <option value="">Selecione...</option>
-                  {categorias
-                    .filter(c => !buscaCategoria || c.nome.toLowerCase().includes(buscaCategoria.toLowerCase()) || c.subcategoria?.toLowerCase().includes(buscaCategoria.toLowerCase()))
-                    .map(c => <option key={c.id} value={c.id}>{c.nome}{c.subcategoria ? ` / ${c.subcategoria}` : ''}</option>)
-                  }
-                </select>
-              </div>
+              <input 
+                list="categorias-list"
+                value={buscaCategoria} 
+                onChange={e => {
+                  const val = e.target.value;
+                  setBuscaCategoria(val);
+                  const cat = categorias.find(c => (c.subcategoria ? `${c.nome} > ${c.subcategoria}` : c.nome) === val);
+                  if (cat) setForm({...form, categoria_id: cat.id});
+                }} 
+                className="input-field" 
+                placeholder="Selecione ou digite para buscar..." 
+              />
+              <datalist id="categorias-list">
+                {categorias.map(c => (
+                  <option key={c.id} value={c.subcategoria ? `${c.nome} > ${c.subcategoria}` : c.nome} />
+                ))}
+              </datalist>
             </div>
           </div>
           <div>

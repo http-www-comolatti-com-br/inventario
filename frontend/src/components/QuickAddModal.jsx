@@ -366,37 +366,23 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
                           </div>
                           <div>
                             <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase">Categoria *</label>
-                            <div className="relative mb-2">
-                              <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                              <input 
-                                value={buscaCategoria} 
-                                onChange={e => setBuscaCategoria(e.target.value)} 
-                                className="input-field pl-10 h-11 bg-dark-800 border-dark-600" 
-                                placeholder="Filtrar categorias (ex: notebook, periférico...)"
-                              />
-                            </div>
-                            <div className="max-h-40 overflow-y-auto space-y-1 pr-1 custom-scrollbar border border-dark-600 rounded-xl p-2 bg-dark-800">
-                              {categorias
-                                .filter(c => !buscaCategoria || c.nome.toLowerCase().includes(buscaCategoria.toLowerCase()) || c.subcategoria?.toLowerCase().includes(buscaCategoria.toLowerCase()))
-                                .map(c => (
-                                  <button 
-                                    key={c.id} 
-                                    type="button"
-                                    onClick={() => {
-                                      setNovoModelo({ ...novoModelo, categoria_id: c.id });
-                                      setBuscaCategoria(c.subcategoria ? `${c.nome} > ${c.subcategoria}` : c.nome);
-                                    }} 
-                                    className={`w-full text-left p-2.5 rounded-lg text-sm transition-all flex items-center justify-between ${novoModelo.categoria_id == c.id ? 'bg-cyber-cyan/10 border border-cyber-cyan/50 text-cyber-cyan' : 'hover:bg-dark-600 text-gray-300'}`}
-                                  >
-                                    <span>{c.nome} {c.subcategoria ? `> ${c.subcategoria}` : ''}</span>
-                                    {novoModelo.categoria_id == c.id && <HiOutlineCheck className="w-4 h-4" />}
-                                  </button>
-                                ))
-                              }
-                              {categorias.filter(c => !buscaCategoria || c.nome.toLowerCase().includes(buscaCategoria.toLowerCase()) || c.subcategoria?.toLowerCase().includes(buscaCategoria.toLowerCase())).length === 0 && (
-                                <p className="text-center py-4 text-gray-500 text-xs italic">Nenhuma categoria encontrada.</p>
-                              )}
-                            </div>
+                            <input 
+                              list="categorias-list"
+                              value={buscaCategoria} 
+                              onChange={e => {
+                                const val = e.target.value;
+                                setBuscaCategoria(val);
+                                const cat = categorias.find(c => (c.subcategoria ? `${c.nome} > ${c.subcategoria}` : c.nome) === val);
+                                if (cat) setNovoModelo({ ...novoModelo, categoria_id: cat.id });
+                              }} 
+                              className="input-field h-12 bg-dark-900 border-dark-600" 
+                              placeholder="Digite para buscar categoria..."
+                            />
+                            <datalist id="categorias-list">
+                              {categorias.map(c => (
+                                <option key={c.id} value={c.subcategoria ? `${c.nome} > ${c.subcategoria}` : c.nome} />
+                              ))}
+                            </datalist>
                           </div>
                         </div>
                       )}
