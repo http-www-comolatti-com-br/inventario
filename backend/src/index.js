@@ -24,6 +24,7 @@ app.use('/api/estoque', require('./routes/estoque'));
 app.use('/api/unidades', require('./routes/unidades'));
 app.use('/api/movimentacoes', require('./routes/movimentacoes'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/config', require('./routes/config'));
 
 // Health check
 app.get('/api/health', (req, res) => {

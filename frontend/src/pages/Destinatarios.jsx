@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import Modal from '../components/Modal';
 import toast from 'react-hot-toast';
-import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineUserGroup, HiOutlineEye } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineUserGroup, HiOutlineEye, HiOutlineSearch } from 'react-icons/hi';
 
 export default function Destinatarios() {
   const [destinatarios, setDestinatarios] = useState([]);
@@ -12,7 +12,10 @@ export default function Destinatarios() {
   const [itensModal, setItensModal] = useState(false);
   const [itensDestinatario, setItensDestinatario] = useState([]);
   const [selectedDest, setSelectedDest] = useState(null);
-  const [form, setForm] = useState({ nome_completo: '', setor: '', filial: '', ativo: true, observacoes: '' });
+  const [adSearch, setAdSearch] = useState('');
+  const [adResults, setAdResults] = useState([]);
+  const [adLoading, setAdLoading] = useState(false);
+  const [form, setForm] = useState({ nome_completo: '', setor: '', filial: '', ativo: true, observacoes: '', telefone: '', cidade: '', origem: 'local' });
 
   useEffect(() => { load(); }, []);
 
@@ -22,8 +25,8 @@ export default function Destinatarios() {
     finally { setLoading(false); }
   };
 
-  const openNew = () => { setEditing(null); setForm({ nome_completo: '', setor: '', filial: '', ativo: true, observacoes: '' }); setModal(true); };
-  const openEdit = (d) => { setEditing(d); setForm({ nome_completo: d.nome_completo, setor: d.setor || '', filial: d.filial || '', ativo: d.ativo, observacoes: d.observacoes || '' }); setModal(true); };
+  const openNew = () => { setEditing(null); setForm({ nome_completo: '', setor: '', filial: '', ativo: true, observacoes: '', telefone: '', cidade: '', origem: 'local' }); setAdSearch(''); setAdResults([]); setModal(true); };
+  const openEdit = (d) => { setEditing(d); setForm({ nome_completo: d.nome_completo, setor: d.setor || '', filial: d.filial || '', ativo: d.ativo, observacoes: d.observacoes || '', telefone: d.telefone || '', cidade: d.cidade || '', origem: d.origem || 'local' }); setModal(true); };
 
   const verItens = async (d) => {
     setSelectedDest(d);
@@ -48,6 +51,33 @@ export default function Destinatarios() {
     if (!confirm('Deseja excluir este destinatário?')) return;
     try { await api.delete(`/destinatarios/${id}`); toast.success('Destinatário excluído!'); load(); }
     catch (err) { toast.error(err.response?.data?.error || 'Erro ao excluir.'); }
+  };
+
+  const handleADSearch = async () => {
+    if (!adSearch) return;
+    setAdLoading(true);
+    try {
+      const res = await api.get(`/destinatarios/search-ad?q=${adSearch}`);
+      setAdResults(res.data);
+      if (res.data.length === 0) toast.error('Nenhum usuário encontrado no AD.');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erro na busca AD.');
+    } finally {
+      setAdLoading(false);
+    }
+  };
+
+  const selectADUser = (u) => {
+    setForm({
+      ...form,
+      nome_completo: u.nome_completo,
+      setor: u.setor,
+      filial: u.filial,
+      telefone: u.telefone,
+      cidade: u.cidade,
+      origem: 'ad'
+    });
+    setAdResults([]);
   };
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-12 h-12 border-4 border-cyber-cyan/30 border-t-cyber-cyan rounded-full animate-spin" /></div>;
@@ -97,38 +127,116 @@ export default function Destinatarios() {
         </table>
       </div>
 
-      <Modal isOpen={modal} onClose={() => setModal(false)} title={editing ? 'Editar Destinatário' : 'Novo Destinatário'}>
-        <form onSubmit={save} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Nome Completo *</label>
-            <input value={form.nome_completo} onChange={e => setForm({...form, nome_completo: e.target.value})} className="input-field" placeholder="Nome completo" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Setor</label>
-              <input value={form.setor} onChange={e => setForm({...form, setor: e.target.value})} className="input-field" placeholder="Ex: TI" />
+      <Modal isOpen={modal} onClose={() => setModal(false)} title={editing ? 'Editar Destinatário' : 'Novo Destinatário'} size="lg">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Coluna de Busca AD (apenas novo) */}
+          {!editing && (
+            <div className="md:col-span-1 border-r border-dark-600 pr-6 space-y-4">
+              <h3 className="text-sm font-semibold text-cyber-cyan flex items-center gap-2">
+                <HiOutlineSearch /> Importar do AD
+              </h3>
+              <div className="flex gap-2">
+                <input 
+                  value={adSearch} 
+                  onChange={e => setAdSearch(e.target.value)} 
+                  onKeyDown={e => e.key === 'Enter' && handleADSearch()}
+                  className="input-field text-xs" 
+                  placeholder="Nome no AD..." 
+                />
+                <button type="button" onClick={handleADSearch} className="p-2 btn-secondary"><HiOutlineSearch /></button>
+              </div>
+              
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {adLoading ? (
+                  <p className="text-xs text-gray-500 animate-pulse">Buscando...</p>
+                ) : adResults.map((u, i) => (
+                  <button key={i} type="button" onClick={() => selectADUser(u)} 
+                    className="w-full text-left p-2 rounded-lg bg-dark-700 hover:bg-dark-600 border border-dark-500 transition-colors group">
+                    <p className="text-xs font-medium text-white group-hover:text-cyber-cyan">{u.nome_completo}</p>
+                    <p className="text-[10px] text-gray-400">{u.setor}</p>
+                  </button>
+                ))}
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Filial</label>
-              <input value={form.filial} onChange={e => setForm({...form, filial: e.target.value})} className="input-field" placeholder="Ex: Matriz" />
+          )}
+
+          {/* Formulário Principal */}
+          <form onSubmit={save} className={`${editing ? 'md:col-span-3' : 'md:col-span-2'} space-y-4`}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-400 mb-1">Nome Completo *</label>
+                <input 
+                  value={form.nome_completo} 
+                  disabled={form.origem === 'ad'}
+                  onChange={e => setForm({...form, nome_completo: e.target.value})} 
+                  className={`input-field ${form.origem === 'ad' ? 'opacity-60 cursor-not-allowed' : ''}`} 
+                  placeholder="Nome completo" 
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Setor</label>
+                <input 
+                  value={form.setor} 
+                  disabled={form.origem === 'ad'}
+                  onChange={e => setForm({...form, setor: e.target.value})} 
+                  className={`input-field ${form.origem === 'ad' ? 'opacity-60 cursor-not-allowed' : ''}`} 
+                  placeholder="Ex: TI" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Filial</label>
+                <input 
+                  value={form.filial} 
+                  disabled={form.origem === 'ad'}
+                  onChange={e => setForm({...form, filial: e.target.value})} 
+                  className={`input-field ${form.origem === 'ad' ? 'opacity-60 cursor-not-allowed' : ''}`} 
+                  placeholder="Ex: Matriz" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Telefone</label>
+                <input 
+                  value={form.telefone} 
+                  disabled={form.origem === 'ad'}
+                  onChange={e => setForm({...form, telefone: e.target.value})} 
+                  className={`input-field ${form.origem === 'ad' ? 'opacity-60 cursor-not-allowed' : ''}`} 
+                  placeholder="(00) 00000-0000" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Cidade</label>
+                <input 
+                  value={form.cidade} 
+                  disabled={form.origem === 'ad'}
+                  onChange={e => setForm({...form, cidade: e.target.value})} 
+                  className={`input-field ${form.origem === 'ad' ? 'opacity-60 cursor-not-allowed' : ''}`} 
+                  placeholder="Cidade" 
+                />
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-gray-400">Ativo</label>
-            <button type="button" onClick={() => setForm({...form, ativo: !form.ativo})}
-              className={`w-12 h-6 rounded-full transition-colors ${form.ativo ? 'bg-cyber-green' : 'bg-dark-500'}`}>
-              <div className={`w-5 h-5 bg-white rounded-full transition-transform ${form.ativo ? 'translate-x-6' : 'translate-x-0.5'}`} />
-            </button>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Observações</label>
-            <textarea value={form.observacoes} onChange={e => setForm({...form, observacoes: e.target.value})} className="input-field h-20" />
-          </div>
-          <div className="flex gap-3 pt-4">
-            <button type="submit" className="btn-primary flex-1">Salvar</button>
-            <button type="button" onClick={() => setModal(false)} className="btn-secondary flex-1">Cancelar</button>
-          </div>
-        </form>
+
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium text-gray-400">Ativo</label>
+              <button type="button" onClick={() => setForm({...form, ativo: !form.ativo})}
+                className={`w-12 h-6 rounded-full transition-colors ${form.ativo ? 'bg-cyber-green' : 'bg-dark-500'}`}>
+                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${form.ativo ? 'translate-x-6' : 'translate-x-0.5'}`} />
+              </button>
+              {form.origem === 'ad' && <span className="text-[10px] bg-cyber-blue/20 text-cyber-blue px-2 py-0.5 rounded-md border border-cyber-blue/30">Sincronizado com AD</span>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Observações</label>
+              <textarea value={form.observacoes} onChange={e => setForm({...form, observacoes: e.target.value})} className="input-field h-20" />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button type="submit" className="btn-primary flex-1">Salvar</button>
+              <button type="button" onClick={() => setModal(false)} className="btn-secondary flex-1">Cancelar</button>
+            </div>
+          </form>
+        </div>
       </Modal>
 
       {/* Itens em posse */}

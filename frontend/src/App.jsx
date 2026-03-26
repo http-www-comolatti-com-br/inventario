@@ -13,6 +13,7 @@ import Movimentacoes from './pages/Movimentacoes';
 import Consultas from './pages/Consultas';
 import Usuarios from './pages/Usuarios';
 import Ajuda from './pages/Ajuda';
+import ConfiguracoesAD from './pages/ConfiguracoesAD';
 
 function PrivateRoute({ children }) {
   const { usuario, loading } = useAuth();
@@ -55,6 +56,7 @@ function App() {
             <Route path="consultas" element={<Consultas />} />
             <Route path="ajuda" element={<Ajuda />} />
             <Route path="usuarios" element={<AdminRoute><Usuarios /></AdminRoute>} />
+            <Route path="config/ad" element={<AdminRoute><ConfiguracoesAD /></AdminRoute>} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

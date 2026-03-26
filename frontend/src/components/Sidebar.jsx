@@ -30,6 +30,7 @@ export default function Sidebar({ collapsed, onToggle, onQuickAdd }) {
 
   if (usuario?.perfil === 'admin') {
     links.push({ to: '/usuarios', icon: HiOutlineUsers, label: 'Usuários' });
+    links.push({ to: '/config/ad', icon: HiOutlineServer, label: 'Configuração AD' });
   }
 
   return (
