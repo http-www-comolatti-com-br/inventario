@@ -18,6 +18,7 @@ export default function Modelos() {
   const [filtroStatus, setFiltroStatus] = useState('true'); // 'true' = ativos, 'false' = inativos, '' = todos
   
   const [form, setForm] = useState({ tipo: 'patrimonio', categoria_id: '', nome: '', marca: '', modelo: '', part_number: '', especificacoes: '', observacoes: '' });
+  const [buscaCategoria, setBuscaCategoria] = useState('');
 
   useEffect(() => { loadCategorias(); }, []);
   useEffect(() => { load(); }, [filtroTipo, filtroBusca, filtroStatus]);
@@ -42,12 +43,19 @@ export default function Modelos() {
   const openNew = () => {
     setEditing(null);
     setForm({ tipo: 'consumivel', categoria_id: '', nome: '', marca: '', modelo: '', part_number: '', especificacoes: '', observacoes: '' });
+    setBuscaCategoria('');
     setEditModal(true);
   };
 
   const openEdit = (m) => {
     setEditing(m);
     setForm({ tipo: m.tipo, categoria_id: m.categoria_id || '', nome: m.nome, marca: m.marca || '', modelo: m.modelo || '', part_number: m.part_number || '', especificacoes: m.especificacoes || '', observacoes: m.observacoes || '' });
+    if (m.categoria_id) {
+      const cat = categorias.find(c => c.id === m.categoria_id);
+      if (cat) setBuscaCategoria(cat.subcategoria ? `${cat.nome} > ${cat.subcategoria}` : cat.nome);
+    } else {
+      setBuscaCategoria('');
+    }
     setEditModal(true);
   };
 
@@ -170,10 +178,32 @@ export default function Modelos() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Categoria</label>
-              <select value={form.categoria_id} onChange={e => setForm({...form, categoria_id: e.target.value})} className="select-field">
-                <option value="">Selecione...</option>
-                {categorias.map(c => <option key={c.id} value={c.id}>{c.nome}{c.subcategoria ? ` / ${c.subcategoria}` : ''}</option>)}
-              </select>
+              <div className="space-y-2">
+                <input 
+                  value={buscaCategoria} 
+                  onChange={e => setBuscaCategoria(e.target.value)} 
+                  className="input-field h-9 text-xs" 
+                  placeholder="Pesquisar categoria..." 
+                />
+                <select 
+                  value={form.categoria_id} 
+                  onChange={e => {
+                    const val = e.target.value;
+                    setForm({...form, categoria_id: val});
+                    if (val) {
+                      const cat = categorias.find(c => c.id == val);
+                      if (cat) setBuscaCategoria(cat.subcategoria ? `${cat.nome} > ${cat.subcategoria}` : cat.nome);
+                    }
+                  }} 
+                  className="select-field"
+                >
+                  <option value="">Selecione...</option>
+                  {categorias
+                    .filter(c => !buscaCategoria || c.nome.toLowerCase().includes(buscaCategoria.toLowerCase()) || c.subcategoria?.toLowerCase().includes(buscaCategoria.toLowerCase()))
+                    .map(c => <option key={c.id} value={c.id}>{c.nome}{c.subcategoria ? ` / ${c.subcategoria}` : ''}</option>)
+                  }
+                </select>
+              </div>
             </div>
           </div>
           <div>
