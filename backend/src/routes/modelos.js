@@ -6,13 +6,14 @@ const router = express.Router();
 // GET /api/modelos
 router.get('/', auth, async (req, res) => {
   try {
-    const { tipo, categoria_id, busca } = req.query;
+    const { tipo, categoria_id, busca, ativo } = req.query;
     let query = `SELECT m.*, c.nome as categoria_nome, c.subcategoria
                  FROM modelos m LEFT JOIN categorias c ON m.categoria_id = c.id WHERE 1=1`;
     const params = [];
     let idx = 1;
     if (tipo) { query += ` AND m.tipo = $${idx++}`; params.push(tipo); }
     if (categoria_id) { query += ` AND m.categoria_id = $${idx++}`; params.push(categoria_id); }
+    if (ativo !== undefined) { query += ` AND m.ativo = $${idx++}`; params.push(ativo === 'true'); }
     if (busca) { query += ` AND (m.nome ILIKE $${idx} OR m.marca ILIKE $${idx} OR m.modelo ILIKE $${idx})`; params.push(`%${busca}%`); idx++; }
     query += ' ORDER BY m.nome';
     const result = await pool.query(query, params);
@@ -63,11 +64,11 @@ router.post('/', auth, async (req, res) => {
 // PUT /api/modelos/:id
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { tipo, categoria_id, nome, marca, modelo, part_number, especificacoes, observacoes } = req.body;
+    const { tipo, categoria_id, nome, marca, modelo, part_number, especificacoes, observacoes, ativo } = req.body;
     const result = await pool.query(
-      `UPDATE modelos SET tipo=$1, categoria_id=$2, nome=$3, marca=$4, modelo=$5, part_number=$6, especificacoes=$7, observacoes=$8, atualizado_em=NOW()
-       WHERE id=$9 RETURNING *`,
-      [tipo, categoria_id || null, nome, marca || null, modelo || null, part_number || null, especificacoes || null, observacoes || null, req.params.id]
+      `UPDATE modelos SET tipo=$1, categoria_id=$2, nome=$3, marca=$4, modelo=$5, part_number=$6, especificacoes=$7, observacoes=$8, ativo=COALESCE($9, ativo), atualizado_em=NOW()
+       WHERE id=$10 RETURNING *`,
+      [tipo, categoria_id || null, nome, marca || null, modelo || null, part_number || null, especificacoes || null, observacoes || null, ativo, req.params.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Modelo não encontrado.' });
     res.json(result.rows[0]);

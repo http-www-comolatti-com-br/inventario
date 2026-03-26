@@ -1,3 +1,4 @@
+
 const express = require('express');
 const pool = require('../db');
 const { auth } = require('../middleware/auth');
@@ -117,7 +118,7 @@ router.post('/entrada-massa', auth, async (req, res) => {
       );
 
       const estoqueRes = await client.query('SELECT id FROM estoque WHERE modelo_id = $1', [modelo_id]);
-      
+
       const mov = await client.query(
         `INSERT INTO movimentacoes (tipo, modelo_id, estoque_id, quantidade, usuario_id, observacao)
          VALUES ('entrada', $1, $2, $3, $4, $5) RETURNING *`,
@@ -192,7 +193,7 @@ router.post('/entrega', auth, async (req, res) => {
       if (!unidade_id) { await client.query('ROLLBACK'); return res.status(400).json({ error: 'Unidade é obrigatória para patrimônio.' }); }
       const un = await client.query('SELECT * FROM unidades WHERE id = $1', [unidade_id]);
       if (un.rows.length === 0) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Unidade não encontrada.' }); }
-      if (un.rows[0].status !== 'disponivel') { await client.query('ROLLBACK'); return res.status(400).json({ error: 'Unidade não está disponível para entrega.' }); }
+      if (un.rows[0].status !== 'disponivel' && un.rows[0].status !== 'manutencao') { await client.query('ROLLBACK'); return res.status(400).json({ error: 'Unidade não está disponível (nem em manutenção) para entrega.' }); }
       await client.query(
         "UPDATE unidades SET status = 'em_uso', destinatario_id = $1, atualizado_em = NOW() WHERE id = $2",
         [destinatario_id, unidade_id]
@@ -240,7 +241,7 @@ router.post('/devolucao', auth, async (req, res) => {
       if (!unidade_id) { await client.query('ROLLBACK'); return res.status(400).json({ error: 'Unidade é obrigatória para patrimônio.' }); }
       const un = await client.query('SELECT * FROM unidades WHERE id = $1', [unidade_id]);
       if (un.rows.length === 0) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Unidade não encontrada.' }); }
-      if (un.rows[0].status !== 'em_uso') { await client.query('ROLLBACK'); return res.status(400).json({ error: 'Unidade não está em uso para devolução.' }); }
+      if (un.rows[0].status !== 'em_uso' && un.rows[0].status !== 'manutencao') { await client.query('ROLLBACK'); return res.status(400).json({ error: 'Unidade não está em uso/manutenção para devolução.' }); }
       await client.query(
         "UPDATE unidades SET status = 'disponivel', destinatario_id = NULL, atualizado_em = NOW() WHERE id = $1",
         [unidade_id]

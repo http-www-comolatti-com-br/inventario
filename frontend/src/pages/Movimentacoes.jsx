@@ -3,7 +3,7 @@ import api from '../services/api';
 import Modal from '../components/Modal';
 import QuickAddModal from '../components/QuickAddModal';
 import toast from 'react-hot-toast';
-import { HiOutlinePlus, HiOutlineXCircle, HiOutlineLightningBolt } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineXCircle, HiOutlineLightningBolt, HiOutlineMinusCircle } from 'react-icons/hi';
 
 const TIPOS = [
   { value: 'entrada', label: 'Entrada', color: 'bg-cyber-green/20 text-cyber-green' },
@@ -21,6 +21,8 @@ function getStatusFilter(tipoMov) {
   if (tipoMov === 'entrega') return 'disponivel';
   if (tipoMov === 'devolucao') return 'em_uso';
   if (tipoMov === 'transferencia') return 'em_uso';
+  if (tipoMov === 'manutencao') return ''; // Pode enviar para manutenção tanto disponivel quanto em uso
+  if (tipoMov === 'baixa') return ''; // Pode dar baixa em qlqr status
   return '';
 }
 
@@ -33,7 +35,10 @@ export default function Movimentacoes() {
   const [modal, setModal] = useState(false);
   const [quickModal, setQuickModal] = useState(false);
   const [filtroTipo, setFiltroTipo] = useState('');
+  
   const [tipoMov, setTipoMov] = useState('devolucao');
+  const [contextoModal, setContextoModal] = useState(''); // 'patrimonio' ou 'consumivel'
+  
   const [form, setForm] = useState({ modelo_id: '', unidade_id: '', quantidade: '', destinatario_id: '', observacao: '' });
 
   useEffect(() => { load(); loadAux(); }, []);
@@ -66,8 +71,9 @@ export default function Movimentacoes() {
     } catch {}
   };
 
-  const openNew = (tipo) => {
+  const openNew = (tipo, contexto) => {
     setTipoMov(tipo);
+    setContextoModal(contexto);
     setForm({ modelo_id: '', unidade_id: '', quantidade: '', destinatario_id: '', observacao: '' });
     setUnidades([]);
     setModal(true);
@@ -87,7 +93,9 @@ export default function Movimentacoes() {
 
   const selectedModelo = modelos.find(m => m.id == form.modelo_id);
   const isPatrimonio = selectedModelo?.tipo === 'patrimonio';
-  const needDestinatario = ['transferencia'].includes(tipoMov);
+  
+  // Entregas E Transferências OBRIGAM que se diga pra onde a máquina/item está indo
+  const needDestinatario = ['transferencia', 'entrega'].includes(tipoMov);
 
   const save = async (e) => {
     e.preventDefault();
@@ -128,30 +136,37 @@ export default function Movimentacoes() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="page-title">Movimentações</h1>
-          <p className="text-gray-500 mt-1">Registre e acompanhe todas as movimentações de estoque</p>
+          <p className="text-gray-500 mt-1">Registre e acompanhe todas as movimentações e destinações</p>
         </div>
-        <div className="flex gap-2 flex-wrap items-center">
-          {/* Botão principal: Entrada Rápida (cobre Entrada + Entrega) */}
-          <button
-            onClick={() => setQuickModal(true)}
-            className="btn-primary flex items-center gap-2 px-4 py-2"
-          >
-            <HiOutlineLightningBolt className="w-4 h-4" /> Entrada Rápida
-          </button>
+        
+        <div className="flex flex-col gap-3">
+          {/* Fila superior: Botão Único de Ação Rápida (Unificado) */}
+          <div className="flex gap-3 flex-wrap items-center justify-end mb-2 pb-2">
+            <button
+              onClick={() => setQuickModal(true)}
+              className="btn-primary flex items-center gap-2 px-6 py-2.5 hover:shadow-[0_0_20px_rgba(4,217,255,0.4)] hover:scale-105 transition-all text-[13px] uppercase tracking-wider font-bold"
+              title="Criação ágil, entregas e transferências centralizadas de Seriais e Lotes"
+            >
+              <HiOutlineLightningBolt className="w-5 h-5 text-dark-900" /> Ação Rápida Universal
+            </button>
+          </div>
 
-          {/* Botões de operações pós-entrega */}
-          {TIPOS_OPERACAO.map(t => {
-            const cfg = TIPOS.find(x => x.value === t);
-            return (
-              <button
-                key={t}
-                onClick={() => openNew(t)}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all hover:scale-105 ${cfg.color} border border-transparent hover:border-current`}
-              >
-                <HiOutlinePlus className="w-3 h-3 inline mr-1" /> {cfg.label}
-              </button>
-            );
-          })}
+          {/* Fila inferior: Restantes Patrimonios */}
+          <div className="flex gap-3 items-center justify-end opacity-90 mt-1">
+            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold hidden sm:block mr-2">Ações de Patrimônios Fixos:</span>
+            {TIPOS_OPERACAO.map(t => {
+              const cfg = TIPOS.find(x => x.value === t);
+              return (
+                <button
+                  key={t}
+                  onClick={() => openNew(t, 'patrimonio')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105 ${cfg.color} border border-transparent hover:border-current`}
+                >
+                  {cfg.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -170,8 +185,8 @@ export default function Movimentacoes() {
               <th className="text-left p-4">Tipo</th>
               <th className="text-left p-4">Item</th>
               <th className="text-center p-4">Qtd</th>
-              <th className="text-left p-4">Destinatário</th>
-              <th className="text-left p-4">Usuário</th>
+              <th className="text-left p-4">Destinatário / Setor</th>
+              <th className="text-left p-4">Usuário Emissor</th>
               <th className="text-left p-4">Observação</th>
               <th className="text-right p-4">Ações</th>
             </tr>
@@ -183,15 +198,15 @@ export default function Movimentacoes() {
               <tr key={m.id} className={`table-row ${m.cancelado ? 'opacity-40' : ''}`}>
                 <td className="p-4 text-gray-400 whitespace-nowrap text-xs">{new Date(m.criado_em).toLocaleString('pt-BR')}</td>
                 <td className="p-4"><span className={`px-2 py-1 rounded-lg text-xs font-semibold ${tipoColor(m.tipo)}`}>{tipoLabel(m.tipo)}</span></td>
-                <td className="p-4 text-white">{m.modelo_nome}{m.numero_serie ? ` (${m.numero_serie})` : ''}</td>
-                <td className="p-4 text-center text-gray-300">{m.quantidade || '—'}</td>
+                <td className="p-4 text-white font-medium">{m.modelo_nome}{m.numero_serie ? ` (${m.numero_serie})` : ''}</td>
+                <td className="p-4 text-center text-gray-300 font-bold">{m.quantidade ? (m.tipo === 'entrada' ? `+${m.quantidade}` : `-${m.quantidade}`) : '—'}</td>
                 <td className="p-4 text-gray-300">{m.destinatario_nome || '—'}</td>
                 <td className="p-4 text-gray-400">{m.usuario_nome}</td>
                 <td className="p-4 text-gray-400 max-w-xs truncate">{m.cancelado ? `❌ ${m.motivo_cancelamento}` : (m.observacao || '—')}</td>
                 <td className="p-4 text-right">
                   {!m.cancelado && (
                     <button onClick={() => cancelar(m.id)} className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-red transition-colors" title="Cancelar">
-                      <HiOutlineXCircle className="w-4 h-4" />
+                      <HiOutlineXCircle className="w-5 h-5" />
                     </button>
                   )}
                 </td>
@@ -201,20 +216,23 @@ export default function Movimentacoes() {
         </table>
       </div>
 
-      {/* Modal para operações pós-entrega (Devolução, Transferência, Manutenção, Baixa) */}
-      <Modal isOpen={modal} onClose={() => setModal(false)} title={`Registrar ${tipoLabel(tipoMov)}`}>
+      {/* Modal Genérico Reativo */}
+      <Modal isOpen={modal} onClose={() => setModal(false)} title={`Registrar ${tipoLabel(tipoMov)} ${contextoModal === 'consumivel' ? '(Estoque em Lote)' : '(Patrimônio)'}`}>
         <form onSubmit={save} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Modelo/Item *</label>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Qual Item? *</label>
             <select
               value={form.modelo_id}
               onChange={e => onModeloChange(e.target.value, tipoMov)}
               className="select-field"
             >
-              <option value="">Selecione...</option>
-              {modelos.map(m => (
+              <option value="">Selecione na lista...</option>
+              {modelos
+                .filter(m => m.ativo)
+                .filter(m => contextoModal ? m.tipo === contextoModal : true)
+                .map(m => (
                 <option key={m.id} value={m.id}>
-                  {m.nome} ({m.tipo === 'patrimonio' ? 'Patrimônio' : 'Consumível'}) - {m.marca}
+                  {m.nome} - {m.marca || 'S/ Marca'} 
                 </option>
               ))}
             </select>
@@ -228,7 +246,7 @@ export default function Movimentacoes() {
                 onChange={e => setForm({ ...form, unidade_id: e.target.value })}
                 className="select-field"
               >
-                <option value="">Selecione a unidade...</option>
+                <option value="">Localize a etiqueta patrimonial/série...</option>
                 {unidades.length === 0 && form.modelo_id ? (
                   <option disabled value="">
                     {tipoMov === 'devolucao' ? 'Nenhuma unidade em uso para devolução' :
@@ -238,37 +256,36 @@ export default function Movimentacoes() {
                 ) : null}
                 {unidades.map(u => (
                   <option key={u.id} value={u.id}>
-                    {u.numero_serie || u.etiqueta_patrimonial || `ID ${u.id}`} — {u.status}{u.destinatario_nome ? ` (${u.destinatario_nome})` : ''}
+                    {u.numero_serie || u.etiqueta_patrimonial || `ID ${u.id}`} — {u.status}{u.destinatario_nome ? ` (Atual: ${u.destinatario_nome})` : ''}
                   </option>
                 ))}
               </select>
               {isPatrimonio && form.modelo_id && unidades.length === 0 && (
                 <p className="text-xs text-cyber-yellow mt-1">
-                  {tipoMov === 'devolucao' && '⚠ Não há unidades com status "Em Uso" para este modelo.'}
-                  {tipoMov === 'transferencia' && '⚠ Não há unidades com status "Em Uso" para este modelo.'}
-                  {(tipoMov === 'manutencao' || tipoMov === 'baixa') && '⚠ Nenhuma unidade cadastrada para este modelo.'}
+                  ⚠ Atenção: Não há unidades físicas no status necessário para esta operação.
                 </p>
               )}
             </div>
           )}
 
-          {!isPatrimonio && (
+          {!isPatrimonio && form.modelo_id && (
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Quantidade *</label>
+              <label className="block text-sm font-medium text-cyber-cyan mb-1">Quantidade Numérica *</label>
               <input
                 type="number"
                 min="1"
                 value={form.quantidade}
                 onChange={e => setForm({ ...form, quantidade: e.target.value })}
-                className="input-field"
-                placeholder="Quantidade"
+                className="input-field border-cyber-cyan/30 bg-cyber-cyan/5 focus:border-cyber-cyan"
+                placeholder="Ex: 10"
+                autoFocus
               />
             </div>
           )}
 
           {needDestinatario && (
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Novo Destinatário *</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Novo Destinatário (Quem vai receber?) *</label>
               <select
                 value={form.destinatario_id}
                 onChange={e => setForm({ ...form, destinatario_id: e.target.value })}
@@ -290,13 +307,13 @@ export default function Movimentacoes() {
               value={form.observacao}
               onChange={e => setForm({ ...form, observacao: e.target.value })}
               className="input-field h-20"
-              placeholder="Motivo ou observação da movimentação"
+              placeholder="Ex: Teclados recebidos da filial norte / Destinado à nova turma de devs"
             />
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <button type="submit" className="btn-primary flex-1">Registrar {tipoLabel(tipoMov)}</button>
-            <button type="button" onClick={() => setModal(false)} className="btn-secondary flex-1">Cancelar</button>
+          <div className="flex gap-3 pt-4 border-t border-dark-600">
+            <button type="submit" className="btn-primary flex-1 py-3 text-base">Registrar {tipoLabel(tipoMov)}</button>
+            <button type="button" onClick={() => setModal(false)} className="btn-secondary flex-1 py-3">Cancelar</button>
           </div>
         </form>
       </Modal>

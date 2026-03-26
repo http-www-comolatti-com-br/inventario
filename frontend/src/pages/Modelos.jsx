@@ -3,7 +3,7 @@ import api from '../services/api';
 import Modal from '../components/Modal';
 import QuickAddModal from '../components/QuickAddModal';
 import toast from 'react-hot-toast';
-import { HiOutlinePencil, HiOutlineTrash, HiOutlineCube, HiOutlineLightningBolt } from 'react-icons/hi';
+import { HiOutlinePencil, HiOutlineCube, HiOutlineLightningBolt, HiOutlineArchive, HiOutlineReply } from 'react-icons/hi';
 
 export default function Modelos() {
   const [modelos, setModelos] = useState([]);
@@ -12,18 +12,23 @@ export default function Modelos() {
   const [editModal, setEditModal] = useState(false);
   const [quickModal, setQuickModal] = useState(false);
   const [editing, setEditing] = useState(null);
+  
   const [filtroTipo, setFiltroTipo] = useState('');
   const [filtroBusca, setFiltroBusca] = useState('');
+  const [filtroStatus, setFiltroStatus] = useState('true'); // 'true' = ativos, 'false' = inativos, '' = todos
+  
   const [form, setForm] = useState({ tipo: 'patrimonio', categoria_id: '', nome: '', marca: '', modelo: '', part_number: '', especificacoes: '', observacoes: '' });
 
-  useEffect(() => { load(); loadCategorias(); }, []);
-  useEffect(() => { load(); }, [filtroTipo, filtroBusca]);
+  useEffect(() => { loadCategorias(); }, []);
+  useEffect(() => { load(); }, [filtroTipo, filtroBusca, filtroStatus]);
 
   const load = async () => {
     try {
       const params = {};
       if (filtroTipo) params.tipo = filtroTipo;
       if (filtroBusca) params.busca = filtroBusca;
+      if (filtroStatus) params.ativo = filtroStatus === 'true';
+
       const res = await api.get('/modelos', { params });
       setModelos(res.data);
     } catch { toast.error('Erro ao carregar modelos.'); }
@@ -32,6 +37,12 @@ export default function Modelos() {
 
   const loadCategorias = async () => {
     try { const res = await api.get('/categorias'); setCategorias(res.data); } catch {}
+  };
+
+  const openNew = () => {
+    setEditing(null);
+    setForm({ tipo: 'consumivel', categoria_id: '', nome: '', marca: '', modelo: '', part_number: '', especificacoes: '', observacoes: '' });
+    setEditModal(true);
   };
 
   const openEdit = (m) => {
@@ -45,17 +56,27 @@ export default function Modelos() {
     if (!form.nome || !form.tipo) return toast.error('Tipo e nome são obrigatórios.');
     try {
       const data = { ...form, categoria_id: form.categoria_id || null };
-      await api.put(`/modelos/${editing.id}`, data);
-      toast.success('Modelo atualizado!');
+      if (editing) {
+        await api.put(`/modelos/${editing.id}`, data);
+        toast.success('Modelo atualizado!');
+      } else {
+        await api.post(`/modelos`, data);
+        toast.success('Modelo criado com sucesso!');
+      }
       setEditModal(false);
       load();
     } catch (err) { toast.error(err.response?.data?.error || 'Erro ao salvar.'); }
   };
 
-  const remove = async (id) => {
-    if (!confirm('Deseja excluir este modelo?')) return;
-    try { await api.delete(`/modelos/${id}`); toast.success('Modelo excluído!'); load(); }
-    catch (err) { toast.error(err.response?.data?.error || 'Erro ao excluir.'); }
+  const toggleAtivo = async (m) => {
+    const acao = m.ativo ? 'arquivar' : 'desarquivar';
+    if (!confirm(`Deseja ${acao} este modelo? ${m.ativo ? 'Ele não aparecerá mais em novos cadastros.' : ''}`)) return;
+    try { 
+      await api.put(`/modelos/${m.id}`, { ...m, ativo: !m.ativo }); 
+      toast.success(m.ativo ? 'Modelo arquivado com sucesso!' : 'Modelo restaurado e agora aparece nos menus!'); 
+      load(); 
+    }
+    catch (err) { toast.error(err.response?.data?.error || 'Erro ao alterar status do modelo.'); }
   };
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-12 h-12 border-4 border-cyber-cyan/30 border-t-cyber-cyan rounded-full animate-spin" /></div>;
@@ -67,13 +88,23 @@ export default function Modelos() {
           <h1 className="page-title">Modelos de Itens</h1>
           <p className="text-gray-500 mt-1">Gerencie os modelos de equipamentos e consumíveis</p>
         </div>
-        <button onClick={() => setQuickModal(true)} className="btn-primary flex items-center gap-2">
-          <HiOutlineLightningBolt className="w-5 h-5" /> Entrada Rápida
-        </button>
+        <div className="flex gap-2">
+          <button onClick={openNew} className="btn-secondary flex items-center gap-2">
+            <HiOutlineCube className="w-5 h-5" /> Novo Modelo
+          </button>
+          <button onClick={() => setQuickModal(true)} className="btn-primary flex items-center gap-2">
+            <HiOutlineLightningBolt className="w-5 h-5" /> Ação Rápida
+          </button>
+        </div>
       </div>
 
       {/* Filtros */}
       <div className="flex gap-4 flex-wrap">
+        <select value={filtroStatus} onChange={e => setFiltroStatus(e.target.value)} className="select-field w-40">
+          <option value="true">Apenas Ativos</option>
+          <option value="false">Apenas Arquivados</option>
+          <option value="">Exibir Todos</option>
+        </select>
         <select value={filtroTipo} onChange={e => setFiltroTipo(e.target.value)} className="select-field w-48">
           <option value="">Todos os tipos</option>
           <option value="patrimonio">Patrimônio</option>
@@ -96,12 +127,14 @@ export default function Modelos() {
           </thead>
           <tbody>
             {modelos.length === 0 ? (
-              <tr><td colSpan="6" className="p-8 text-center text-gray-500">Nenhum modelo cadastrado</td></tr>
+              <tr><td colSpan="6" className="p-8 text-center text-gray-500">Nenhum modelo compatível com os filtros</td></tr>
             ) : modelos.map(m => (
-              <tr key={m.id} className="table-row">
+              <tr key={m.id} className={`table-row ${!m.ativo ? 'opacity-40' : ''}`}>
                 <td className="p-4 text-white font-medium">
                   <div className="flex items-center gap-2">
-                    <HiOutlineCube className="w-4 h-4 text-cyber-cyan flex-shrink-0" /> {m.nome}
+                    <HiOutlineCube className={`w-4 h-4 flex-shrink-0 ${m.ativo ? 'text-cyber-cyan' : 'text-gray-600'}`} /> 
+                    <span className={!m.ativo ? 'line-through text-gray-500' : ''}>{m.nome}</span>
+                    {!m.ativo && <span className="text-[10px] uppercase font-bold tracking-wider bg-dark-600 border border-dark-500 text-gray-400 px-2 py-0.5 rounded ml-2">Arquivado</span>}
                   </div>
                 </td>
                 <td className="p-4">
@@ -114,7 +147,9 @@ export default function Modelos() {
                 <td className="p-4 text-gray-300">{m.modelo || '—'}</td>
                 <td className="p-4 text-right">
                   <button onClick={() => openEdit(m)} className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-cyan transition-colors" title="Editar modelo"><HiOutlinePencil className="w-4 h-4" /></button>
-                  <button onClick={() => remove(m.id)} className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-red transition-colors ml-1" title="Excluir modelo"><HiOutlineTrash className="w-4 h-4" /></button>
+                  <button onClick={() => toggleAtivo(m)} className="p-2 rounded-lg hover:bg-dark-600 text-gray-400 hover:text-cyber-yellow transition-colors ml-1" title={m.ativo ? "Arquivar modelo (Ocultar nos cadastros)" : "Desarquivar modelo (Visível novamente)"}>
+                    {m.ativo ? <HiOutlineArchive className="w-4 h-4" /> : <HiOutlineReply className="w-4 h-4" />}
+                  </button>
                 </td>
               </tr>
             ))}
@@ -122,13 +157,13 @@ export default function Modelos() {
         </table>
       </div>
 
-      {/* Modal de EDIÇÃO (mantido para editar modelos existentes) */}
-      <Modal isOpen={editModal} onClose={() => setEditModal(false)} title="Editar Modelo">
+      {/* Modal Genérico de CRIAÇÃO / EDIÇÃO */}
+      <Modal isOpen={editModal} onClose={() => setEditModal(false)} title={editing ? "Editar Modelo" : "Novo Modelo"}>
         <form onSubmit={save} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Tipo</label>
-              <select value={form.tipo} disabled className="select-field opacity-60 cursor-not-allowed">
+              <select value={form.tipo} onChange={e => setForm({...form, tipo: e.target.value})} disabled={!!editing} className={`select-field ${editing ? 'opacity-60 cursor-not-allowed' : ''}`}>
                 <option value="patrimonio">Patrimônio</option>
                 <option value="consumivel">Consumível</option>
               </select>
@@ -174,7 +209,7 @@ export default function Modelos() {
         </form>
       </Modal>
 
-      {/* Wizard de Entrada Rápida */}
+      {/* Wizard de Ação Rápida */}
       <QuickAddModal isOpen={quickModal} onClose={() => setQuickModal(false)} onSuccess={load} />
     </div>
   );

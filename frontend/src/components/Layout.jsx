@@ -34,7 +34,7 @@ export default function Layout() {
         </div>
       </main>
 
-      {/* Modal global de Entrada Rápida */}
+      {/* Modal global de Ação Rápida */}
       <QuickAddModal isOpen={quickModal} onClose={() => setQuickModal(false)} />
     </div>
   );

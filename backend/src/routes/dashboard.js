@@ -14,8 +14,8 @@ router.get('/resumo', auth, async (req, res) => {
       `SELECT status, COUNT(*) as total FROM unidades GROUP BY status`
     );
 
-    // Total de unidades
-    const totalUnidades = await pool.query('SELECT COUNT(*) as total FROM unidades');
+    // Total de unidades (patrimônios ativos, ignorando os baixados/lixo)
+    const totalUnidades = await pool.query("SELECT COUNT(*) as total FROM unidades WHERE status != 'baixado'");
 
     // Total de consumíveis em estoque
     const totalConsumiveis = await pool.query(
@@ -54,17 +54,36 @@ router.get('/resumo', auth, async (req, res) => {
   }
 });
 
+// GET /api/dashboard/consumiveis-criticos
+router.get('/consumiveis-criticos', auth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT m.id, m.nome, m.marca, COALESCE(e.quantidade_disponivel, 0) as quantidade_disponivel, COALESCE(e.quantidade_minima, 0) as quantidade_minima
+       FROM modelos m
+       LEFT JOIN estoque e ON e.modelo_id = m.id
+       WHERE m.tipo = 'consumivel' AND m.ativo = TRUE
+       ORDER BY (COALESCE(e.quantidade_disponivel, 0) - COALESCE(e.quantidade_minima, 0)) ASC, COALESCE(e.quantidade_disponivel, 0) ASC
+       LIMIT 4`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar consumíveis críticos:', err);
+    res.status(500).json({ error: 'Erro ao buscar dados.' });
+  }
+});
+
 // GET /api/dashboard/por-categoria
 router.get('/por-categoria', auth, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT c.nome as categoria, c.subcategoria, COUNT(DISTINCT m.id) as total_modelos,
-              COUNT(DISTINCT u.id) as total_unidades
+      `SELECT c.nome as categoria, 
+              COUNT(DISTINCT m.id)::int as total_modelos,
+              COUNT(DISTINCT u.id)::int as total_unidades
        FROM categorias c
        LEFT JOIN modelos m ON m.categoria_id = c.id
-       LEFT JOIN unidades u ON u.modelo_id = m.id
-       GROUP BY c.id, c.nome, c.subcategoria
-       ORDER BY c.nome`
+       LEFT JOIN unidades u ON u.modelo_id = m.id AND u.status != 'baixado'
+       GROUP BY c.nome
+       ORDER BY total_unidades DESC`
     );
     res.json(result.rows);
   } catch (err) {

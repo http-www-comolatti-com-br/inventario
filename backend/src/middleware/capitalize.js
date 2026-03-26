@@ -12,9 +12,8 @@
  */
 
 const CAMPOS_IGNORADOS = new Set([
-  'login', 'senha', 'email', 'tipo', 'perfil', 'status',
+  'login', 'senha', 'email', 'tipo', 'perfil', 'status', 'role',
   'part_number', 'numero_serie', 'etiqueta_patrimonial',
-  'observacoes', 'especificacoes', 'observacao',
   'quantidade', 'quantidade_disponivel', 'quantidade_minima',
   'id', 'modelo_id', 'categoria_id', 'destinatario_id',
   'destinatario_origem_id', 'unidade_id', 'estoque_id',
@@ -27,10 +26,11 @@ function capitalizeWords(str) {
     .split(' ')
     .map(word => {
       if (word.length === 0) return word;
-      // Preservar preposições e artigos em minúsculo (exceto se for a primeira palavra)
       const lower = word.toLowerCase();
       const preposicoes = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'no', 'na', 'nos', 'nas', 'por', 'para', 'com', 'sem', 'a', 'o', 'as', 'os', 'um', 'uma'];
-      // Retorna a palavra com primeira letra maiúscula
+      if (preposicoes.includes(lower) && str.split(' ').indexOf(word) !== 0) {
+        return lower;
+      }
       return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     })
     .join(' ');
@@ -47,4 +47,4 @@ function capitalizeBody(req, res, next) {
   next();
 }
 
-module.exports = { capitalizeBody, capitalizeWords };
+module.exports = { capitalizeBody };

@@ -166,14 +166,14 @@ export default function Ajuda() {
             <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
               <div className="flex items-center gap-2 mb-1">
                 <HiOutlineCheckCircle className="w-5 h-5 text-emerald-400" />
-                <span className="text-emerald-400 font-semibold">Disponível</span>
+                <span className="text-emerald-400 font-semibold">Disponível em Estoque</span>
               </div>
               <p className="text-gray-400 text-xs">O equipamento está pronto para ser entregue a um colaborador. Ele não está com ninguém no momento.</p>
             </div>
             <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
               <div className="flex items-center gap-2 mb-1">
                 <HiOutlineDesktopComputer className="w-5 h-5 text-blue-400" />
-                <span className="text-blue-400 font-semibold">Em Uso</span>
+                <span className="text-blue-400 font-semibold">Em Uso no Campo</span>
               </div>
               <p className="text-gray-400 text-xs">O equipamento foi entregue a um colaborador e está sendo utilizado. O nome do destinatário aparece vinculado.</p>
             </div>
@@ -182,22 +182,22 @@ export default function Ajuda() {
                 <HiOutlineCog className="w-5 h-5 text-amber-400" />
                 <span className="text-amber-400 font-semibold">Manutenção</span>
               </div>
-              <p className="text-gray-400 text-xs">O equipamento está em reparo ou análise técnica. Não pode ser entregue até que seja devolvido ao status disponível.</p>
+              <p className="text-gray-400 text-xs">O equipamento está em reparo ou análise técnica. Poderá ser resgatado quando consertado (Devolução/Entrega) ou ir para Descarte se perder utilidade.</p>
             </div>
             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30">
               <div className="flex items-center gap-2 mb-1">
                 <HiOutlineXCircle className="w-5 h-5 text-red-400" />
-                <span className="text-red-400 font-semibold">Baixado</span>
+                <span className="text-red-400 font-semibold">Descartado</span>
               </div>
-              <p className="text-gray-400 text-xs">O equipamento foi descartado, doado ou inutilizado. Ele permanece no histórico, mas não pode mais ser movimentado.</p>
+              <p className="text-gray-400 text-xs">O equipamento sofreu descarte, doação ou foi inutilizado. Ele permanece no histórico das movimentações para auditoria, mas some das contagens ativas da base.</p>
             </div>
           </div>
         </Section>
 
-        {/* MODELOS */}
+        {/* MODELOS E PADRONIZAÇÃO */}
         <Section icon={HiOutlineCube} title="Cadastro de Modelos">
           <p>
-            O cadastro de modelos é o primeiro passo para organizar seu inventário. Aqui você define todos os tipos de equipamentos e consumíveis que a empresa utiliza.
+            O cadastro de modelos é o primeiro passo para organizar seu inventário. Aqui você define todos os tipos de equipamentos e consumíveis que a empresa utiliza. O sistema organiza tudo automaticamente de forma padronizada.
           </p>
           <InfoTable
             headers={['Campo', 'Descrição', 'Exemplo']}
@@ -208,12 +208,14 @@ export default function Ajuda() {
               ['Marca', 'Fabricante do item', 'Logitech'],
               ['Modelo', 'Modelo específico do fabricante', 'MX Master 3'],
               ['Part Number', 'Código do fabricante (opcional)', '910-005647'],
-              ['Especificações', 'Detalhes técnicos relevantes', 'Sem fio, Bluetooth, USB-C'],
             ]}
           />
           <div className="p-3 rounded-xl bg-cyber-cyan/5 border border-cyber-cyan/20 mt-3">
+            <p className="text-xs text-gray-400 mb-2">
+              <strong className="text-cyber-cyan">Dica:</strong> Ao escolher o tipo <strong>Patrimônio</strong>, você poderá cadastrar unidades individuais na tela correspondente. Consumíveis geram estoque.
+            </p>
             <p className="text-xs text-gray-400">
-              <strong className="text-cyber-cyan">Dica:</strong> Ao escolher o tipo <strong>Patrimônio</strong>, você poderá cadastrar unidades individuais na tela de Patrimônio. Ao escolher <strong>Consumível</strong>, um registro de estoque será criado automaticamente.
+              <strong className="text-cyber-cyan">Auto-Formatação (Start Case):</strong> Não se preocupe em caprichar nas letras maiúsculas e minúsculas! O sistema automaticamente converte seus textos garantindo que fiquem profissionais (Ex: "teclado lg" vira "Teclado Lg"). Apenas códigos como "Número de Série" são mantidos em Caixa Alta pura.
             </p>
           </div>
         </Section>
@@ -221,7 +223,7 @@ export default function Ajuda() {
         {/* CATEGORIAS */}
         <Section icon={HiOutlineTag} title="Categorias">
           <p>
-            As categorias servem para organizar seus modelos em grupos lógicos. Cada categoria pode ter um nome e uma subcategoria.
+            As categorias servem para organizar seus modelos em grupos lógicos. Todas seguem a auto-formatação.
           </p>
           <InfoTable
             headers={['Campo', 'Descrição', 'Exemplo']}
@@ -231,27 +233,27 @@ export default function Ajuda() {
             ]}
           />
           <p>
-            <strong className="text-white">Exemplos de organização:</strong> Periféricos/Mouse, Periféricos/Teclado, Notebooks, Monitores, Cabos/HDMI, Cabos/Rede, Impressão/Toner.
+            <strong className="text-white">Exemplos de organização:</strong> Periféricos/Mouse, Notebooks, Cabos/Rede, Impressão/Toner.
           </p>
         </Section>
 
         {/* PATRIMÔNIO */}
         <Section icon={HiOutlineServer} title="Patrimônio (Unidades)">
           <p>
-            A tela de Patrimônio é onde você cadastra e gerencia cada equipamento individual. Cada unidade está vinculada a um modelo do tipo Patrimônio.
+            A tela de Patrimônio gerencia cada equipamento individual da Base. Você pode listar e pesquisar todo o volume.
           </p>
           <InfoTable
             headers={['Campo', 'Descrição', 'Exemplo']}
             rows={[
               ['Modelo', 'O tipo de equipamento (selecionado da lista)', 'Notebook Dell Latitude 5520'],
-              ['Número de Série', 'Identificador único de fábrica', 'SN-DELL-ABC123'],
-              ['Etiqueta Patrimonial', 'Seu código de controle interno', 'PAT-TI-0055'],
+              ['Número de Série', 'Identificador único de fábrica (Sempre CAIXA ALTA)', 'SN-DELL-ABC123'],
+              ['Etiqueta Patrimonial', 'Seu código de controle interno (Sempre CAIXA ALTA)', 'PAT-TI-0055'],
               ['Local', 'Onde o equipamento está guardado', 'Almoxarifado TI - Sala 3'],
             ]}
           />
           <div className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 mt-3">
             <p className="text-xs text-gray-400">
-              <strong className="text-emerald-400">QR Code:</strong> Cada unidade cadastrada possui um QR Code gerado automaticamente. Ao escanear com o celular, você verá todas as informações do equipamento, incluindo status, destinatário e histórico.
+              <strong className="text-emerald-400">QR Code:</strong> Cada unidade cadastrada possui um QR Code auto-gerado. Escaneie para obter acesso imediato ao inventário do item!
             </p>
           </div>
         </Section>
@@ -259,133 +261,59 @@ export default function Ajuda() {
         {/* CONSUMÍVEIS */}
         <Section icon={HiOutlineClipboardList} title="Consumíveis (Estoque)">
           <p>
-            A tela de Consumíveis mostra o estoque de itens que são controlados por quantidade. Cada registro de estoque está vinculado a um modelo do tipo Consumível.
+            Consumíveis são controlados por lote. Tudo em um só lugar.
           </p>
           <InfoTable
             headers={['Campo', 'Descrição', 'Exemplo']}
             rows={[
               ['Quantidade Disponível', 'Número de itens em estoque', '45'],
-              ['Quantidade Mínima', 'Limite para alerta de estoque baixo', '10'],
-              ['Local de Armazenagem', 'Onde os itens estão guardados', 'Almoxarifado A - Prateleira 2'],
-            ]}
-          />
-          <p>
-            Quando a quantidade disponível ficar igual ou abaixo da quantidade mínima, um <strong className="text-amber-400">alerta</strong> aparecerá no Dashboard.
-          </p>
-        </Section>
-
-        {/* DESTINATÁRIOS */}
-        <Section icon={HiOutlineUserGroup} title="Destinatários">
-          <p>
-            Os destinatários são os colaboradores ou setores que recebem os equipamentos. Ao registrar uma entrega, você seleciona o destinatário que ficará responsável pelo item.
-          </p>
-          <InfoTable
-            headers={['Campo', 'Descrição', 'Exemplo']}
-            rows={[
-              ['Nome Completo', 'Nome do colaborador', 'Ana Costa Silva'],
-              ['Setor', 'Departamento do colaborador', 'Recursos Humanos'],
-              ['Filial', 'Unidade/filial (se aplicável)', 'Matriz - São Paulo'],
+              ['Quantidade Mínima', 'Limite para alerta de vulnerabilidade', '10'],
+              ['Local', 'Onde os itens estão fisicamente localizados', 'Almoxarifado A'],
             ]}
           />
         </Section>
 
-        {/* MOVIMENTAÇÕES */}
-        <Section icon={HiOutlineSwitchHorizontal} title="Movimentações">
+        {/* MOVIMENTAÇÕES E AÇÃO RÁPIDA */}
+        <Section icon={HiOutlineSwitchHorizontal} title="Ação Rápida (Movimentações)">
           <p>
-            As movimentações são o coração do sistema. Elas registram toda e qualquer ação realizada sobre um equipamento ou consumível, criando um histórico completo de auditoria.
+            Graças ao sistema de Inteligência de Ação Rápida, você não precisa ficar navegando por várias abas para mover um item. O botão azul na parte inferior das telas engatilha a <strong>Ação Rápida Universal</strong>!
           </p>
 
           <InfoTable
-            headers={['Tipo', 'O que faz', 'Quando usar']}
+            headers={['Ação Universal', 'Comportamento da IA do Modal', 'Quando usar']}
             rows={[
-              ['📥 Entrada', 'Adiciona itens ao estoque/patrimônio', 'Quando receber uma compra ou doação'],
-              ['📦 Entrega', 'Entrega um equipamento a um destinatário', 'Quando um colaborador precisa de um item'],
-              ['🔄 Devolução', 'Devolve um equipamento ao estoque', 'Quando o colaborador retorna o item'],
-              ['🔀 Transferência', 'Transfere de um destinatário para outro', 'Quando o item muda de responsável'],
-              ['🔧 Manutenção', 'Envia o equipamento para reparo', 'Quando o item apresenta defeito'],
-              ['❌ Baixa', 'Remove o equipamento do inventário ativo', 'Quando o item é descartado ou inutilizado'],
+              ['📥 Entrada', 'Verifica itens "Entregues" ou novos para adicionar estoque/base', 'Criar itens do zero ou receber insumos'],
+              ['📦 Entrega', 'Filtra os disponíveis para que escolha um Destinatário', 'Equipar colaborador com patrimônimo'],
+              ['🔄 Devolução', 'Localiza itens em Uso e devolve automaticamente para Estoque', 'Funcionário de saída, resgate em manutenção'],
+              ['🔀 Transferência', 'Filtra itens em Uso e troca os destinatários', 'Repasses sem voltar ao estoque'],
+              ['🔧 Manutenção', 'Exige motivo e retira o item da contagem Disponível', 'Equipamento ou Peça com avarias técnicas'],
+              ['🗑️ Descarte', 'Executa uma "Baixa" e retira perpetuamente de circulação', 'Quando o insumo/patrimônio não tem mais conserto'],
             ]}
           />
 
           <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/20 mt-3">
             <p className="text-xs text-gray-400">
-              <strong className="text-blue-400">Importante:</strong> As movimentações alteram automaticamente o status das unidades. Por exemplo, ao registrar uma "Entrega", o status da unidade muda de "Disponível" para "Em Uso" e o destinatário é vinculado.
+              <strong className="text-blue-400">Ação Rápida Inteligente:</strong> Ao selecionar a intenção no botão Ação Rápida, o próprio sistema oculta opções de Patrimônios que não fazem sentido (ex: não dá pra Devolver um Notebook que já está no Estoque). Basta se preocupar em selecionar!
             </p>
           </div>
-        </Section>
-
-        {/* FLUXO COMPLETO */}
-        <Section icon={HiOutlineSwitchHorizontal} title="Fluxo de Trabalho Completo (Exemplo)">
-          <p className="mb-4">
-            Veja o passo a passo para cadastrar e gerenciar um notebook do início ao fim:
-          </p>
-
-          <div className="space-y-4">
-            <StepCard
-              number="1"
-              title="Cadastrar a Categoria"
-              description='Vá em Categorias e crie "Notebooks" (se ainda não existir).'
-            />
-            <StepCard
-              number="2"
-              title="Cadastrar o Modelo"
-              description='Vá em Modelos, clique em "Novo Modelo", selecione tipo "Patrimônio", categoria "Notebooks" e preencha: "Notebook Lenovo ThinkPad T14".'
-            />
-            <StepCard
-              number="3"
-              title="Cadastrar a Unidade"
-              description='Vá em Patrimônio, clique em "Nova Unidade", selecione o modelo criado e preencha o número de série e etiqueta patrimonial. A unidade será criada com status "Disponível".'
-            />
-            <StepCard
-              number="4"
-              title="Registrar a Entrega"
-              description='Vá em Movimentações, clique em "Nova Entrega", selecione o modelo, a unidade e o destinatário. O status mudará para "Em Uso".'
-            />
-            <StepCard
-              number="5"
-              title="Consultar e Acompanhar"
-              description='No Dashboard, acompanhe os totais. Em Patrimônio, veja o histórico e o QR Code de cada unidade. Em Consultas, busque por qualquer critério.'
-            />
-          </div>
-        </Section>
-
-        {/* QR CODE */}
-        <Section icon={HiOutlineQrcode} title="QR Code dos Equipamentos">
-          <p>
-            Cada unidade patrimonial possui um <strong className="text-white">QR Code</strong> gerado automaticamente pelo sistema. Esse código contém todas as informações relevantes do equipamento.
-          </p>
-          <p className="mt-2">
-            <strong className="text-white">Como usar:</strong> Na tela de Patrimônio, clique no ícone de QR Code ao lado de qualquer unidade. Um modal será exibido com o código e as informações do equipamento. Você pode imprimir o QR Code e colá-lo fisicamente no equipamento. Ao escanear com qualquer leitor de QR Code (câmera do celular), as informações do item serão exibidas.
-          </p>
-          <p className="mt-2">
-            <strong className="text-white">Informações contidas no QR Code:</strong> Nome do item, marca, modelo, número de série, etiqueta patrimonial, status atual, categoria, destinatário e localização.
-          </p>
         </Section>
 
         {/* DASHBOARD */}
-        <Section icon={HiOutlineViewGrid} title="Entendendo o Dashboard">
+        <Section icon={HiOutlineViewGrid} title="A Torre de Controle (Dashboard)">
           <p>
-            O Dashboard é a tela inicial do sistema e oferece uma visão geral completa do seu inventário.
+            A página "Início" agora opera como uma verdadeira Torre de Controle Total do inventário. Todo dado que você vê pode levar a um filtro profundo.
           </p>
 
           <InfoTable
-            headers={['Seção', 'O que mostra']}
+            headers={['Gráfico/Módulo', 'Interatividade']}
             rows={[
-              ['Cards de Resumo', 'Total de equipamentos, consumíveis em estoque e movimentações dos últimos 30 dias'],
-              ['Status dos Equipamentos', 'Gráfico de rosca + cards detalhados mostrando quantos itens estão Disponíveis, Em Uso, em Manutenção e Baixados'],
-              ['Alerta de Estoque', 'Aviso quando consumíveis atingem o estoque mínimo (aparece apenas quando há alertas)'],
-              ['Por Categoria', 'Gráfico de barras mostrando quais categorias possuem mais equipamentos'],
-              ['Por Destinatário', 'Ranking dos colaboradores com mais equipamentos em posse'],
-              ['Movimentações Recentes', 'Timeline das últimas atividades registradas no sistema'],
-              ['Ações Rápidas', 'Botões de atalho para as operações mais comuns'],
+              ['Residência Geral', 'Os cards do topo exibem volume consolidado e status rápidos'],
+              ['Balanço Patrimonial (Rosca)', 'Cada fatia (Verde, Vermelha, Amarela) é um "botão grande". Clique no Anel Verde para ver TUDO que tem disponível.'],
+              ['Distribuição de Patrimônio', 'Demonstra as famílias mais populosas do projeto, mas ignora Sucatas (Itens descartados) e agrupado pela categoria mãe.'],
+              ['Por Destinatário', 'Ranking de uso entre usuários de quem tem mais insumos/unidades'],
+              ['Consumíveis Críticos', 'Central de pânico na direita: Tudo com pouca quantidade fica em vermelho exigindo re-compra.'],
             ]}
           />
-
-          <div className="p-3 rounded-xl bg-cyber-cyan/5 border border-cyber-cyan/20 mt-3">
-            <p className="text-xs text-gray-400">
-              <strong className="text-cyber-cyan">Dica:</strong> Todos os cards e gráficos do Dashboard são clicáveis. Ao clicar em "Disponíveis", por exemplo, você será levado à lista de equipamentos com esse status.
-            </p>
-          </div>
         </Section>
 
       </div>

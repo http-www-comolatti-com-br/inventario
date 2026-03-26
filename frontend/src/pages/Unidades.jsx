@@ -203,7 +203,7 @@ export default function Unidades() {
                     <button 
                       onClick={() => openAction(u, 'baixa')} 
                       className="p-2 rounded-lg hover:bg-dark-600 text-cyber-red hover:text-white transition-all hover:scale-110" 
-                      title="Dar Baixa (Descarte)"
+                      title="Descarte"
                     >
                       <HiOutlineArchive className="w-4 h-4" />
                     </button>
