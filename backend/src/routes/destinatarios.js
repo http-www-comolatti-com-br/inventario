@@ -16,16 +16,13 @@ router.get('/', auth, async (req, res) => {
 // GET /api/destinatarios/search-ad - Buscar usuários no Active Directory
 router.get('/search-ad', auth, async (req, res) => {
   const { q } = req.query;
-  console.log('[DEBUG] Rota search-ad chamada. Query:', q);
   if (!q) return res.status(400).json({ error: 'Termo de busca é obrigatório.' });
   try {
     const adService = require('../services/adService');
-    console.log('[DEBUG] Chamando adService.searchUsers...');
     const users = await adService.searchUsers(q);
-    console.log('[DEBUG] Busca concluída. Usuários:', users.length);
     res.json(users);
   } catch (err) {
-    console.error('[ERRO] Falha na busca AD:', err);
+    console.error('Erro na busca AD:', err);
     res.status(500).json({ error: `Erro na busca AD: ${err.message}` });
   }
 });

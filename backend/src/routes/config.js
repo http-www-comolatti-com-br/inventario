@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const adService = require('../services/adService');
-const { auth } = require('../middleware/auth');
+const { auth, adminOnly } = require('../middleware/auth');
 
 // GET /api/config/ad - Obter configuração (sem senha por segurança)
-router.get('/ad', auth, async (req, res) => {
+router.get('/ad', auth, adminOnly, async (req, res) => {
   try {
     const result = await pool.query('SELECT id, host, porta, base_dn, bind_dn, criado_em, atualizado_em FROM configuracoes_ad ORDER BY id DESC LIMIT 1');
     res.json(result.rows[0] || null);
@@ -15,7 +15,7 @@ router.get('/ad', auth, async (req, res) => {
 });
 
 // POST /api/config/ad - Salvar configuração
-router.post('/ad', auth, async (req, res) => {
+router.post('/ad', auth, adminOnly, async (req, res) => {
   const { host, porta, base_dn, bind_dn, senha } = req.body;
   
   if (!host || !base_dn || !bind_dn || !senha) {
@@ -44,7 +44,7 @@ router.post('/ad', auth, async (req, res) => {
 });
 
 // POST /api/config/ad/test - Testar conexão
-router.post('/ad/test', auth, async (req, res) => {
+router.post('/ad/test', auth, adminOnly, async (req, res) => {
   const { host, porta, base_dn, bind_dn, senha } = req.body;
   try {
     await adService.testConnection({ host, porta: porta || 389, base_dn, bind_dn, senha });
