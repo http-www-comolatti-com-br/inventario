@@ -53,6 +53,12 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
 
   // Auxiliares de visualização do passo 3
   const [destBusca, setDestBusca] = useState('');
+  
+  // AD Search States
+  const [isAdSearch, setIsAdSearch] = useState(false);
+  const [adResults, setAdResults] = useState([]);
+  const [adLoading, setAdLoading] = useState(false);
+  const [tempAdUser, setTempAdUser] = useState(null);
 
   useEffect(() => {
     if (isOpen) { loadAux(); resetAll(); }
@@ -95,6 +101,10 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
     setObservacao('');
     setDestBusca('');
     setBuscaCategoria('');
+    setIsAdSearch(false);
+    setAdResults([]);
+    setAdLoading(false);
+    setTempAdUser(null);
   };
 
   // Objetos Ativos
@@ -140,6 +150,45 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
     !destBusca || d.nome_completo.toLowerCase().includes(destBusca.toLowerCase()) || d.setor?.toLowerCase().includes(destBusca.toLowerCase())
   );
 
+  // ====== AÇÕES AD ======
+  const handleADSearch = async () => {
+    if (!destBusca) return toast.error('Digite um nome para buscar no AD.');
+    setAdLoading(true);
+    try {
+      const res = await api.get(`/destinatarios/search-ad?q=${destBusca}`);
+      setAdResults(res.data);
+      if (res.data.length === 0) toast.error('Nenhum usuário encontrado no AD.');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erro na busca AD.');
+    } finally {
+      setAdLoading(false);
+    }
+  };
+
+  const handleImportADUser = async () => {
+    if (!tempAdUser.nome_completo) return toast.error('Nome é obrigatório.');
+    setSaving(true);
+    try {
+      const res = await api.post('/destinatarios', { ...tempAdUser, ativo: true });
+      const newDest = res.data;
+      
+      // Atualizar lista local e selecionar o novo
+      setDestinatarios(prev => [...prev, newDest]);
+      setDestinatarioId(newDest.id);
+      
+      // Resetar estados AD
+      setTempAdUser(null);
+      setAdResults([]);
+      setIsAdSearch(false);
+      setDestBusca(newDest.nome_completo);
+      
+      toast.success('Destinatário importado e selecionado!');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erro ao importar do AD.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // ====== NAVEGAÇÃO ======
   const STEPS = [
@@ -495,19 +544,112 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
 
                   {(['entrega', 'transferencia'].includes(intencao) || (intencao === 'entrada' && entregarDireto)) && (
                     <div className="space-y-3">
-                       <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">Para quem vai? *</label>
+                       <div className="flex items-center justify-between">
+                          <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">{isAdSearch ? 'Pesquisar no Active Directory' : 'Para quem vai? *'}</label>
+                          <button 
+                            type="button" 
+                            onClick={() => { setIsAdSearch(!isAdSearch); setAdResults([]); setTempAdUser(null); }}
+                            className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border transition-all flex items-center gap-1.5 ${isAdSearch ? 'bg-cyber-purple/20 border-cyber-purple text-cyber-purple' : 'bg-dark-600 border-dark-500 text-gray-400 hover:text-white hover:bg-dark-500'}`}
+                          >
+                            <HiOutlineUserGroup className="w-3.5 h-3.5" />
+                            {isAdSearch ? 'Voltar para Local' : 'Buscar no AD'}
+                          </button>
+                       </div>
+
                        <div className="relative">
                           <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                          <input value={destBusca} onChange={e => setDestBusca(e.target.value)} className="input-field pl-10 h-12 bg-dark-900" placeholder="Buscar João, Maria, Vendas..." />
+                          <input 
+                            value={destBusca} 
+                            onChange={e => setDestBusca(e.target.value)} 
+                            onKeyDown={e => e.key === 'Enter' && isAdSearch && handleADSearch()}
+                            className="input-field pl-10 h-12 bg-dark-900 focus:border-cyber-cyan/50" 
+                            placeholder={isAdSearch ? "Digite nome ou sobrenome..." : "Buscar João, Maria, Vendas..."} 
+                          />
+                          {isAdSearch && (
+                            <button 
+                              type="button" 
+                              onClick={handleADSearch}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-cyber-purple text-white text-[10px] font-black uppercase rounded-lg hover:brightness-110 transition-all"
+                            >
+                              Buscar
+                            </button>
+                          )}
                        </div>
-                       <div className="max-h-40 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                         {destFiltrados.map(d => (
-                           <button key={d.id} onClick={() => setDestinatarioId(d.id)} className={`w-full text-left p-3 rounded-lg border transition-all flex items-center justify-between ${destinatarioId === d.id ? 'border-cyber-cyan bg-cyber-cyan/10 text-cyber-cyan font-bold' : 'border-dark-600 bg-dark-800 hover:border-dark-500 text-gray-300'}`}>
-                             {d.nome_completo}
-                             {destinatarioId === d.id && <HiOutlineCheck className="w-5 h-5" />}
-                           </button>
-                         ))}
-                       </div>
+
+                       {/* Listagem de Resultados ou Formulário de Ajuste */}
+                       {isAdSearch ? (
+                         <div className="space-y-2">
+                           {adLoading && <p className="text-center text-xs text-gray-500 animate-pulse py-4">Sincronizando com AD...</p>}
+                           
+                           {!adLoading && adResults.length > 0 && !tempAdUser && (
+                             <div className="max-h-40 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                               <p className="text-[10px] text-gray-500 font-bold uppercase mb-2">Resultados Encontrados:</p>
+                               {adResults.map((u, i) => (
+                                 <button key={i} type="button" onClick={() => setTempAdUser(u)} className="w-full text-left p-3 rounded-xl bg-dark-900 border border-dark-600 hover:border-cyber-purple transition-all group flex items-center justify-between">
+                                   <div>
+                                     <p className="text-sm font-bold text-white group-hover:text-cyber-purple">{u.nome_completo}</p>
+                                     <p className="text-xs text-gray-500">{u.setor} • {u.filial}</p>
+                                   </div>
+                                   <HiOutlineChevronRight className="w-5 h-5 text-gray-600" />
+                                 </button>
+                               ))}
+                             </div>
+                           )}
+
+                           {tempAdUser && (
+                             <div className="p-4 rounded-2xl border border-cyber-purple bg-cyber-purple/5 space-y-4 animate-fadeIn">
+                               <div className="flex items-center justify-between">
+                                 <h4 className="text-xs font-black uppercase text-cyber-purple flex items-center gap-2">
+                                   <HiOutlineCheck className="w-4 h-4" /> Ajustar Dados de Importação
+                                 </h4>
+                                 <button onClick={() => setTempAdUser(null)} className="text-[10px] text-gray-500 hover:text-white uppercase font-bold">Cancelar</button>
+                               </div>
+                               
+                               <div className="grid grid-cols-2 gap-3">
+                                 <div className="col-span-2">
+                                   <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Nome Completo</label>
+                                   <input value={tempAdUser.nome_completo} onChange={e => setTempAdUser({...tempAdUser, nome_completo: e.target.value})} className="input-field h-10 bg-dark-900 text-sm" />
+                                 </div>
+                                 <div>
+                                   <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Setor</label>
+                                   <input value={tempAdUser.setor} onChange={e => setTempAdUser({...tempAdUser, setor: e.target.value})} className="input-field h-10 bg-dark-900 text-sm" />
+                                 </div>
+                                 <div>
+                                   <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Filial</label>
+                                   <input value={tempAdUser.filial} onChange={e => setTempAdUser({...tempAdUser, filial: e.target.value})} className="input-field h-10 bg-dark-900 text-sm" />
+                                 </div>
+                               </div>
+
+                               <button 
+                                 type="button" 
+                                 onClick={handleImportADUser}
+                                 className="w-full py-2.5 bg-cyber-purple text-white text-xs font-black uppercase rounded-xl hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all flex items-center justify-center gap-2"
+                               >
+                                 Finalizar Cadastro e Selecionar
+                               </button>
+                             </div>
+                           )}
+                         </div>
+                       ) : (
+                         <div className="max-h-40 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                           {destFiltrados.length === 0 ? (
+                             <div className="text-center py-4 space-y-2">
+                               <p className="text-xs text-gray-500">Nenhum destinatário local encontrado.</p>
+                               <button onClick={() => setIsAdSearch(true)} className="text-[10px] font-black uppercase text-cyber-purple hover:underline">Tentar busca no AD?</button>
+                             </div>
+                           ) : (
+                             destFiltrados.map(d => (
+                               <button key={d.id} type="button" onClick={() => setDestinatarioId(d.id)} className={`w-full text-left p-3 rounded-lg border transition-all flex items-center justify-between ${destinatarioId === d.id ? 'border-cyber-cyan bg-cyber-cyan/10 text-cyber-cyan font-bold shadow-[0_0_10px_rgba(6,182,212,0.1)]' : 'border-dark-600 bg-dark-800 hover:border-dark-500 text-gray-300'}`}>
+                                 <div>
+                                   <p>{d.nome_completo}</p>
+                                   <p className="text-[10px] text-gray-500 font-normal uppercase tracking-tighter">{d.setor} {d.filial ? `• ${d.filial}` : ''}</p>
+                                 </div>
+                                 {destinatarioId === d.id && <HiOutlineCheck className="w-5 h-5" />}
+                               </button>
+                             ))
+                           )}
+                         </div>
+                       )}
                     </div>
                   )}
 
@@ -553,3 +695,4 @@ export default function QuickAddModal({ isOpen, onClose, onSuccess }) {
     </div>
   );
 }
+
